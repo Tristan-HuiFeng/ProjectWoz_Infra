@@ -1,0 +1,7 @@
+{"level":"info","discoveryID":"67c19e775f5e853244f56bbb","time":"2025-02-28T19:31:04+08:00","message":"Starting retrieval process..."}
+{"level":"info","function":"FindByID","jobID":"67c19e775f5e853244f56bbb","time":"2025-02-28T19:31:04+08:00","message":"Discovery job found successfully"}
+{"level":"info","discoveryID":"67c19e775f5e853244f56bbb","resource":"s3","time":"2025-02-28T19:31:04+08:00","message":"Retrieving resource configurations"}
+2025/02/28 19:31:05 Error retrieving policy for bucket cf-templates-1e40zgol7a02s-us-east-1: operation error S3: GetBucketPolicy, https response error StatusCode: 404, RequestID: 44VX0660WGY7E3YT, HostID: qyAyohT0IQQed02U7K7Ct5DV81OQT9bspzDL+jTidrRnTqzpBSsb321evOu/v+fPY7Tqw5AtJ7P3EcHUoAdSJzlCloKKUBEP, api error NoSuchBucketPolicy: The bucket policy does not exist
+{"level":"info","discoveryID":"67c19e775f5e853244f56bbb","resource":"s3","retrieved":3,"time":"2025-02-28T19:31:06+08:00","message":"Configurations retrieved successfully"}
+{"level":"info","function":"InsertMany","insertedCount":3,"time":"2025-02-28T19:31:06+08:00","message":"Resource configurations inserted successfully"}
+{"level":"info","discoveryID":"67c19e775f5e853244f56bbb","inserted":3,"time":"2025-02-28T19:31:06+08:00","message":"Configurations inserted successfully"}
