@@ -36,7 +36,10 @@ resource "aws_iam_policy" "custom_lambda_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents",
           "ses:SendEmail",
-          "ses:SendRawEmail"
+          "ses:SendRawEmail",
+          "ssm:GetParameters",
+          "ssm:GetParameter",
+          "ssm:DescribeParameters"
         ],
         Resource = "*"
       },
@@ -48,6 +51,14 @@ resource "aws_iam_policy" "custom_lambda_policy" {
           "sqs:GetQueueAttributes",
         ],
         "Resource": var.discovery_sqs_queue_arn
+      },
+            {
+        "Effect" : "Allow",
+        Action = [
+          "sqs:SendMessage",
+          "sqs:GetQueueAttributes",
+        ],
+        "Resource": var.retrieval_sqs_queue_arn
       }
     ]
   })
@@ -110,14 +121,16 @@ resource "aws_lambda_function" "discovery" {
 
   filename = "${path.module}/../../../../bin/discovery/bootstrap.zip"
 
-  vpc_config {
-    subnet_ids         = ["subnet-04b7e2183fbe07ff9", "subnet-01df9b65cbec83278"]
-    security_group_ids = [aws_security_group.lambda.id]
-  }
+  # vpc_config {
+  #   subnet_ids         = ["subnet-04b7e2183fbe07ff9", "subnet-01df9b65cbec83278"]
+  #   security_group_ids = [aws_security_group.lambda.id]
+  # }
 
   environment {
     variables = {
       MONGO_DB_STRING_PARAM = "/cs464/mongo_db_string"
+      PROCESSING_ROLE = "/cs464/cross_account_role"
+      RETRIEVAL_QUEUE_URL = "/cs464/retrieval_queue_url"
     }
   }
   timeout          = 45

@@ -6,15 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/rs/zerolog/log"
 )
 
-func GetParam(paramName string, secure bool) (string, error) {
-	cfg, err := GetRoleConfig()
-
-	if err != nil {
-		log.Fatal().Err(err).Str("function", "GetParam").Msg("unable to get account role config")
-	}
+func GetParam(paramName string, secure bool, cfg aws.Config) (string, error) {
 
 	ssmClient := ssm.NewFromConfig(cfg)
 
