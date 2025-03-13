@@ -126,7 +126,11 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			log.Fatal().Msgf("failed to marshal message into JSON, %v", err)
 		}
 
-		awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
+		err = awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
+		if err != nil {
+			log.Fatal().Str("messageID", message.MessageId).Str("jobID", jobID.Hex()).Msg("Failed to send message to retrieval queue")
+		}
+
 		log.Info().Str("messageID", message.MessageId).Str("jobID", jobID.Hex()).Msg("Discovery process completed for message")
 	}
 
