@@ -85,7 +85,7 @@ func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, resources [
 	return jobID, nil
 }
 
-func RunRetrival(cfg aws.Config, discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, resources []ResourceDiscovery) error {
+func RunRetrieval(cfg aws.Config, discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, resources []ResourceDiscovery) error {
 	log.Info().Str("discoveryID", discoveryID.Hex()).Msg("Starting retrieval process...")
 
 	discoveryJob, err := discoveryRepo.FindByID(discoveryID)

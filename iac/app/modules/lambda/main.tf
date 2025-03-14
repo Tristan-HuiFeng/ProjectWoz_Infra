@@ -50,7 +50,7 @@ resource "aws_iam_policy" "custom_lambda_policy" {
           "sqs:DeleteMessage",
           "sqs:GetQueueAttributes",
         ],
-        "Resource": var.discovery_sqs_queue_arn
+        "Resource": [var.discovery_sqs_queue_arn, var.retrieval_sqs_queue_arn, var.scan_sqs_queue_arn]
       },
             {
         "Effect" : "Allow",
@@ -58,7 +58,7 @@ resource "aws_iam_policy" "custom_lambda_policy" {
           "sqs:SendMessage",
           "sqs:GetQueueAttributes",
         ],
-        "Resource": var.retrieval_sqs_queue_arn
+        "Resource": [var.retrieval_sqs_queue_arn, var.scan_sqs_queue_arn]
       }
     ]
   })
@@ -114,8 +114,8 @@ data "archive_file" "discovery_lambda_zip" {
 }
 
 resource "aws_lambda_function" "discovery" {
-  function_name = "notification_cs464_lambda"
-  handler       = "notification_lambda.lambda_handler"
+  function_name = "discovery_cs464_lambda"
+  handler       = "discovery_lambda.handler"
   runtime       = "provided.al2023"
   role          = aws_iam_role.lambda_role.arn
 
@@ -130,16 +130,97 @@ resource "aws_lambda_function" "discovery" {
     variables = {
       MONGO_DB_STRING_PARAM = "/cs464/mongo_db_string"
       PROCESSING_ROLE = "/cs464/cross_account_role"
-      RETRIEVAL_QUEUE_URL = "/cs464/retrieval_queue_url"
+      RETRIEVAL_QUEUE_PARAM = "/cs464/retrieval_queue_url"
     }
   }
   timeout          = 45
   source_code_hash = data.archive_file.discovery_lambda_zip.output_base64sha256
 }
 
-resource "aws_lambda_event_source_mapping" "sqs_event_source_mapping" {
+resource "aws_lambda_event_source_mapping" "discovery" {
   batch_size          = 1
   event_source_arn    = var.discovery_sqs_queue_arn
   function_name       = aws_lambda_function.discovery.function_name
+  enabled             = true
+}
+
+##################################
+# Retrieval Lambda
+##################################
+
+data "archive_file" "retrieval_lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../../../../bin/retrieval/bootstrap"
+  output_path = "${path.module}/../../../../bin/retrieval/bootstrap.zip"
+}
+
+resource "aws_lambda_function" "retrieval" {
+  function_name = "retrieval_cs464_lambda"
+  handler       = "retrieval_lambda.handler"
+  runtime       = "provided.al2023"
+  role          = aws_iam_role.lambda_role.arn
+
+  filename = "${path.module}/../../../../bin/retrieval/bootstrap.zip"
+
+  # vpc_config {
+  #   subnet_ids         = ["subnet-04b7e2183fbe07ff9", "subnet-01df9b65cbec83278"]
+  #   security_group_ids = [aws_security_group.lambda.id]
+  # }
+
+  environment {
+    variables = {
+      MONGO_DB_STRING_PARAM = "/cs464/mongo_db_string"
+      PROCESSING_ROLE = "/cs464/cross_account_role"
+      SCAN_QUEUE_PARAM = "/cs464/scan_queue_url"
+    }
+  }
+  timeout          = 45
+  source_code_hash = data.archive_file.retrieval_lambda_zip.output_base64sha256
+}
+
+resource "aws_lambda_event_source_mapping" "retrieval" {
+  batch_size          = 1
+  event_source_arn    = var.retrieval_sqs_queue_arn
+  function_name       = aws_lambda_function.retrieval.function_name
+  enabled             = true
+}
+
+##################################
+# Scan Lambda
+##################################
+
+data "archive_file" "scan_lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../../../../bin/scan/bootstrap"
+  output_path = "${path.module}/../../../../bin/scan/bootstrap.zip"
+}
+
+resource "aws_lambda_function" "scan" {
+  function_name = "scan_cs464_lambda"
+  handler       = "scan_lambda.handler"
+  runtime       = "provided.al2023"
+  role          = aws_iam_role.lambda_role.arn
+
+  filename = "${path.module}/../../../../bin/scan/bootstrap.zip"
+
+  # vpc_config {
+  #   subnet_ids         = ["subnet-04b7e2183fbe07ff9", "subnet-01df9b65cbec83278"]
+  #   security_group_ids = [aws_security_group.lambda.id]
+  # }
+
+  environment {
+    variables = {
+      MONGO_DB_STRING_PARAM = "/cs464/mongo_db_string"
+      PROCESSING_ROLE = "/cs464/cross_account_role"
+    }
+  }
+  timeout          = 45
+  source_code_hash = data.archive_file.scan_lambda_zip.output_base64sha256
+}
+
+resource "aws_lambda_event_source_mapping" "scan" {
+  batch_size          = 1
+  event_source_arn    = var.scan_sqs_queue_arn
+  function_name       = aws_lambda_function.scan.function_name
   enabled             = true
 }

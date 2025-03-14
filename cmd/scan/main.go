@@ -3,33 +3,32 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
+	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/opa2"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var (
-	discoveryRepo     awscloud.DiscoveryRepository
+	regoRepo          opa2.RegoRepository
+	scanRepo          opa2.ScanRepository
+	configRepo        awscloud.ConfigRepository
 	resources         []awscloud.ResourceDiscovery
 	client            database.Service
 	sqsClient         *sqs.Client
 	processingRoleCfg aws.Config
 )
 
-type DiscoveryJob struct {
-	ClientID string `json:"client_id"`
-}
-
-type Message struct {
+type Job struct {
 	ClientID string `json:"client_id"`
 	JobID    string `json:"job_id"`
 }
@@ -74,13 +73,15 @@ func init() {
 
 	}()
 
-	RETRIEVAL_QUEUE_URL, err := awscloud.GetParam(os.Getenv("RETRIEVAL_QUEUE_PARAM"), false, processingRoleCfg)
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get retrival queue url from ssm")
-	}
-	os.Setenv("RETRIEVAL_QUEUE_URL", RETRIEVAL_QUEUE_URL)
+	// SCAN_QUEUE_URL, err := awscloud.GetParam(os.Getenv("SCAN_QUEUE_URL"), false, processingRoleCfg)
+	// if err != nil {
+	// 	log.Fatal().Err(err).Msg("unable to get scan queue url from ssm")
+	// }
+	// os.Setenv("SCAN_QUEUE_URL", SCAN_QUEUE_URL)
 
-	discoveryRepo = awscloud.NewDiscoveryRepository(client)
+	regoRepo = opa2.NewRegoRepository(client)
+	scanRepo = opa2.NewScanRepository(client)
+	configRepo = awscloud.NewConfigRepository(client)
 
 	resources = []awscloud.ResourceDiscovery{
 		&awscloud.S3Service{},
@@ -96,42 +97,24 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	for _, message := range sqsEvent.Records {
 		log.Info().Str("messageID", message.MessageId).Msg("Processing SQS message")
 
-		var discoveryJob DiscoveryJob
-		err := json.Unmarshal([]byte(message.Body), &discoveryJob)
+		var job Job
+		err := json.Unmarshal([]byte(message.Body), &job)
 		if err != nil {
 			log.Error().Err(err).Str("messageID", message.MessageId).Msg("Failed to unmarshal SQS message body")
 			continue
 		}
 
-		// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
-		cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", discoveryJob.ClientID))
+		id, err := bson.ObjectIDFromHex(job.JobID)
 		if err != nil {
-			log.Fatal().Msgf("unable to load SDK config, %v", err)
+			log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
 		}
 
-		// Run discovery with the parsed event data
-		jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, resources)
+		err = opa2.RunScan(configRepo, scanRepo, regoRepo, id, resources)
 		if err != nil {
-			log.Error().Err(err).Str("messageID", message.MessageId).Msg("Error running discovery")
-			continue
+			log.Fatal().Msgf("Scan failed, %v", err)
 		}
 
-		msg := Message{
-			ClientID: discoveryJob.ClientID,
-			JobID:    jobID.Hex(),
-		}
-
-		messageBody, err := json.Marshal(msg)
-		if err != nil {
-			log.Fatal().Msgf("failed to marshal message into JSON, %v", err)
-		}
-
-		err = awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
-		if err != nil {
-			log.Fatal().Str("messageID", message.MessageId).Str("jobID", jobID.Hex()).Msg("Failed to send message to retrieval queue")
-		}
-
-		log.Info().Str("messageID", message.MessageId).Str("jobID", jobID.Hex()).Msg("Discovery process completed for message")
+		log.Info().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Scan process completed for message")
 	}
 
 	return nil
