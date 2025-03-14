@@ -10,7 +10,6 @@ import (
 
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -25,9 +24,9 @@ var (
 	processingRoleCfg aws.Config
 )
 
-type DiscoveryJob struct {
-	ClientID string `json:"client_id"`
-}
+// type DiscoveryJob struct {
+// 	ClientID string `json:"client_id"`
+// }
 
 type Message struct {
 	ClientID string `json:"client_id"`
@@ -90,52 +89,99 @@ func init() {
 
 }
 
-func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
+func handler(ctx context.Context) error {
 	// Assuming discoveryRepo and AWS Config are provided from somewhere
 
-	for _, message := range sqsEvent.Records {
-		log.Info().Str("messageID", message.MessageId).Msg("Processing SQS message")
+	log.Info().Msg("running interval discovery")
 
-		var discoveryJob DiscoveryJob
-		err := json.Unmarshal([]byte(message.Body), &discoveryJob)
-		if err != nil {
-			log.Error().Err(err).Str("messageID", message.MessageId).Msg("Failed to unmarshal SQS message body")
-			continue
-		}
+	clientID := "050752608470"
 
-		// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
-		cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", discoveryJob.ClientID))
-		if err != nil {
-			log.Fatal().Msgf("unable to load SDK config, %v", err)
-		}
-
-		// Run discovery with the parsed event data
-		jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, resources)
-		if err != nil {
-			log.Error().Err(err).Str("messageID", message.MessageId).Msg("Error running discovery")
-			continue
-		}
-
-		msg := Message{
-			ClientID: discoveryJob.ClientID,
-			JobID:    jobID.Hex(),
-		}
-
-		messageBody, err := json.Marshal(msg)
-		if err != nil {
-			log.Fatal().Msgf("failed to marshal message into JSON, %v", err)
-		}
-
-		err = awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
-		if err != nil {
-			log.Fatal().Str("messageID", message.MessageId).Str("jobID", jobID.Hex()).Msg("Failed to send message to retrieval queue")
-		}
-
-		log.Info().Str("messageID", message.MessageId).Str("jobID", jobID.Hex()).Msg("Discovery process completed for message")
+	log.Info().Str("client id", clientID).Msg("setting up discovery for client")
+	// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
+	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", clientID))
+	if err != nil {
+		log.Fatal().Msgf("unable to load SDK config, %v", err)
+		return err
 	}
 
+	// Run discovery with the parsed event data
+	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, resources)
+	if err != nil {
+		log.Error().Err(err).Str("client id", clientID).Msg("Error running discovery")
+		return err
+	}
+
+	msg := Message{
+		ClientID: clientID,
+		JobID:    jobID.Hex(),
+	}
+
+	messageBody, err := json.Marshal(msg)
+	if err != nil {
+		log.Fatal().Msgf("failed to marshal message into JSON, %v", err)
+		return err
+	}
+
+	err = awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
+	if err != nil {
+		log.Fatal().Str("jobID", jobID.Hex()).Msg("failed to send message to retrieval queue")
+		return err
+	}
+
+	log.Info().Str("client id", clientID).Str("jobID", jobID.Hex()).Msg("discovery process completed for client")
+
+	log.Info().Msg("interval discovery process completed")
+
 	return nil
+
 }
+
+// func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
+// 	// Assuming discoveryRepo and AWS Config are provided from somewhere
+
+// 	for _, message := range sqsEvent.Records {
+// 		log.Info().Str("messageID", message.MessageId).Msg("Processing SQS message")
+
+// 		var discoveryJob DiscoveryJob
+// 		err := json.Unmarshal([]byte(message.Body), &discoveryJob)
+// 		if err != nil {
+// 			log.Error().Err(err).Str("messageID", message.MessageId).Msg("Failed to unmarshal SQS message body")
+// 			continue
+// 		}
+
+// 		// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
+// 		cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", discoveryJob.ClientID))
+// 		if err != nil {
+// 			log.Fatal().Msgf("unable to load SDK config, %v", err)
+// 		}
+
+// 		// Run discovery with the parsed event data
+// 		jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, resources)
+// 		if err != nil {
+// 			log.Error().Err(err).Str("messageID", message.MessageId).Msg("Error running discovery")
+// 			continue
+// 		}
+
+// 		msg := Message{
+// 			ClientID: discoveryJob.ClientID,
+// 			JobID:    jobID.Hex(),
+// 		}
+
+// 		messageBody, err := json.Marshal(msg)
+// 		if err != nil {
+// 			log.Fatal().Msgf("failed to marshal message into JSON, %v", err)
+// 		}
+
+// 		err = awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
+// 		if err != nil {
+// 			log.Fatal().Str("messageID", message.MessageId).Str("jobID", jobID.Hex()).Msg("Failed to send message to retrieval queue")
+// 		}
+
+// 		log.Info().Str("messageID", message.MessageId).Str("jobID", jobID.Hex()).Msg("Discovery process completed for message")
+// 	}
+
+// 	return nil
+// }
 
 func main() {
 	lambda.Start(handler)

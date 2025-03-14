@@ -50,13 +50,13 @@ func (r *configRepository) InsertMany(resourceConfigs []interface{}) ([]interfac
 	// Insert the documents into the MongoDB collection
 	insertResult, err := r.collection.InsertMany(ctx, resourceConfigs)
 	if err != nil {
-		log.Error().Err(err).Str("function", "InsertMany").Msg("Failed to insert resource configurations")
+		log.Fatal().Err(err).Str("function", "InsertMany").Msg("failed to insert resource configurations")
 		return nil, fmt.Errorf("failed to insert resource configurations: %w", err)
 	}
 
 	log.Info().Str("function", "InsertMany").
 		Int("insertedCount", len(insertResult.InsertedIDs)).
-		Msg("Resource configurations inserted successfully")
+		Msg("resource configurations inserted successfully")
 
 	// Return inserted IDs
 	return insertResult.InsertedIDs, nil
@@ -80,14 +80,20 @@ func (r *configRepository) FindByDiscoveryID(discoveryJobID bson.ObjectID) ([]cl
 	for cursor.Next(context.Background()) {
 		var config cloud.ResourceConfig
 		if err := cursor.Decode(&config); err != nil {
+			log.Fatal().Err(err).Str("function", "FindByTypeAndJobID").Msg("issues with decoding db")
 			return nil, err
 		}
 		results = append(results, config)
 	}
 
 	if err := cursor.Err(); err != nil {
+		log.Fatal().Err(err).Str("function", "FindByDiscoveryID").Msg("failed to retrieve from db")
 		return nil, err
 	}
+
+	log.Info().Str("function", "FindByDiscoveryID").
+		Int("discovery id", len(discoveryJobID)).
+		Msg("retrieve resource configurations by discovery id successfully")
 
 	return results, nil
 }
@@ -112,14 +118,20 @@ func (r *configRepository) FindByTypeAndJobID(resourceType string, discoveryJobI
 	for cursor.Next(context.Background()) {
 		var config cloud.ResourceConfig
 		if err := cursor.Decode(&config); err != nil {
+			log.Fatal().Err(err).Str("function", "FindByTypeAndJobID").Msg("issues with decoding db")
 			return nil, err
 		}
 		results = append(results, config)
 	}
 
 	if err := cursor.Err(); err != nil {
+		log.Fatal().Err(err).Str("function", "FindByTypeAndJobID").Msg("failed to retrieve from db")
 		return nil, err
 	}
+
+	log.Info().Str("function", "FindByTypeAndJobID").
+		Int("discovery id", len(discoveryJobID)).
+		Msg("retrieve resource configurations by discovery id and type successfully")
 
 	return results, nil
 }

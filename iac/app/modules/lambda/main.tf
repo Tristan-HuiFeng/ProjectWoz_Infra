@@ -50,7 +50,7 @@ resource "aws_iam_policy" "custom_lambda_policy" {
           "sqs:DeleteMessage",
           "sqs:GetQueueAttributes",
         ],
-        "Resource": [var.discovery_sqs_queue_arn, var.retrieval_sqs_queue_arn, var.scan_sqs_queue_arn]
+        "Resource": [var.retrieval_sqs_queue_arn, var.scan_sqs_queue_arn]
       },
             {
         "Effect" : "Allow",
@@ -137,12 +137,12 @@ resource "aws_lambda_function" "discovery" {
   source_code_hash = data.archive_file.discovery_lambda_zip.output_base64sha256
 }
 
-resource "aws_lambda_event_source_mapping" "discovery" {
-  batch_size          = 1
-  event_source_arn    = var.discovery_sqs_queue_arn
-  function_name       = aws_lambda_function.discovery.function_name
-  enabled             = true
-}
+# resource "aws_lambda_event_source_mapping" "discovery" {
+#   batch_size          = 1
+#   event_source_arn    = var.discovery_sqs_queue_arn
+#   function_name       = aws_lambda_function.discovery.function_name
+#   enabled             = true
+# }
 
 ##################################
 # Retrieval Lambda

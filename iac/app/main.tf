@@ -1,6 +1,6 @@
 module "lambda" {
   source = "./modules/lambda"
-  discovery_sqs_queue_arn = module.sqs.discovery_sqs_queue_arn
+  # discovery_sqs_queue_arn = module.sqs.discovery_sqs_queue_arn
   retrieval_sqs_queue_arn = module.sqs.retrieval_sqs_queue_arn
   scan_sqs_queue_arn = module.sqs.scan_sqs_queue_arn
 }
