@@ -80,12 +80,6 @@ jobs:
           aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       
-      - name: Change to Terraform Directory
-        run: cd iac/app
-
-      - name: check directory
-        run: ls -la
-
       - name: Terraform Setup
         uses: hashicorp/setup-terraform@v3
 
@@ -93,22 +87,27 @@ jobs:
         id: fmt
         run: terraform fmt -check
         continue-on-error: true
+        working-directory: ./iac/app
 
       - name: Terraform Init
         id: init
         run: terraform init -input=false
+        working-directory: ./iac/app
 
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
+        working-directory: ./iac/app
 
       - name: Terraform Plan
         id: plan
         run: terraform plan -out tfplan -no-color -input=false
         continue-on-error: false
+        working-directory: ./iac/app
       
       - name: Terraform Apply
         id: apply
         run: terraform apply tfplan
+        working-directory: ./iac/app
 
               
