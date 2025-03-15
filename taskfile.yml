@@ -27,14 +27,15 @@ tasks:
         cmd: |
           zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
   
-  upload:
-    desc: "Upload all Lambda functions to s3"
-    deps: [package]
-    cmds:
-      - for:
-          var: LAMBDAS
-        cmd: |
-          aws s3 cp bin/{{.ITEM}}/bootstrap.zip s3://cs464-lambda-s3/{{.ITEM}}/bootstrap.zip
+
+  # upload:
+  #   desc: "Upload all Lambda functions to s3"
+  #   deps: [package]
+  #   cmds:
+  #     - for:
+  #         var: LAMBDAS
+  #       cmd: |
+  #         aws s3 cp bin/{{.ITEM}}/bootstrap.zip s3://cs464-lambda-s3/{{.ITEM}}/bootstrap.zip
 
   # deploy:
   #   desc: "Deploy all Lambda functions to AWS"
