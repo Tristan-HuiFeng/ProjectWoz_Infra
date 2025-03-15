@@ -1,0 +1,45 @@
+version: "3"
+
+vars:
+  LAMBDAS: ["discovery", "retrieval", "scan"]
+  CMD_DIR: "cmd"
+
+tasks:
+  build:
+    desc: "Build all Lambda functions"
+    cmds:
+      - |
+        for lambda in {{.LAMBDAS}}; do
+          GOOS=linux GOARCH=amd64 go build -o {{.CMD_DIR}}/$lambda/bootstrap {{.CMD_DIR}}/$lambda/main.go
+        done
+    sources:
+      - "{{.CMD_DIR}}/**/main.go"
+    generates:
+      - "{{.CMD_DIR}}/**/bootstrap"
+
+  # package:
+  #   desc: "Zip all Lambda functions"
+  #   deps: [build]
+  #   cmds:
+  #     - |
+  #       for lambda in {{.LAMBDAS}}; do
+  #         zip -j {{.CMD_DIR}}/$lambda.zip {{.CMD_DIR}}/$lambda/bootstrap
+  #       done
+
+  # deploy:
+  #   desc: "Deploy all Lambda functions to AWS"
+  #   deps: [package]
+  #   cmds:
+  #     - |
+  #       for lambda in {{.LAMBDAS}}; do
+  #         aws lambda update-function-code --function-name $lambda --zip-file fileb://{{.CMD_DIR}}/$lambda.zip
+  #       done
+  #   env:
+  #     AWS_ACCESS_KEY_ID: "{{.AWS_ACCESS_KEY_ID}}"
+  #     AWS_SECRET_ACCESS_KEY: "{{.AWS_SECRET_ACCESS_KEY}}"
+  #     AWS_REGION: "us-east-1"
+
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - rm -f {{.CMD_DIR}}/**/bootstrap {{.CMD_DIR}}/*.zip

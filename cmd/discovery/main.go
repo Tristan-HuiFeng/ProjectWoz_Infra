@@ -11,17 +11,16 @@ import (
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/rs/zerolog/log"
 )
 
 var (
-	discoveryRepo     awscloud.DiscoveryRepository
-	resources         []awscloud.ResourceDiscovery
-	client            database.Service
-	sqsClient         *sqs.Client
-	processingRoleCfg aws.Config
+	discoveryRepo awscloud.DiscoveryRepository
+	resources     []awscloud.ResourceDiscovery
+	sqsClient     *sqs.Client
+	// processingRoleCfg aws.Config
+	// client        database.Service
 )
 
 // type DiscoveryJob struct {
@@ -105,7 +104,7 @@ func handler(ctx context.Context) error {
 	}
 
 	// Run discovery with the parsed event data
-	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, resources)
+	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, clientID, resources)
 	if err != nil {
 		log.Error().Err(err).Str("client id", clientID).Msg("Error running discovery")
 		return err

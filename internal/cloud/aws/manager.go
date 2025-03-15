@@ -31,10 +31,11 @@ func NewDiscoveryJob() *cloud.DiscoveryJob {
 	}
 }
 
-func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, resources []ResourceDiscovery) (bson.ObjectID, error) {
+func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, clientID string, resources []ResourceDiscovery) (bson.ObjectID, error) {
 	log.Info().Msg("Starting discovery process...")
 
 	job := NewDiscoveryJob()
+	job.ClientID = clientID
 
 	jobID, err := discoveryRepo.Create(job)
 	if err != nil {

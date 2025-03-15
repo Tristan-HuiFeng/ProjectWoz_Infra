@@ -9,6 +9,7 @@ type DiscoveryJob struct {
 	Status    string              `bson:"status"`        // Job status (e.g., "pending", "in-progress", "completed")
 	Resources map[string][]string `bson:"resources"`     // Resources' identifier
 	CreatedAt int64               `bson:"created_at"`    // Timestamp for job creation
+	ClientID  string              `bson:"client_id"`
 }
 
 // type RetrivalJob struct {
