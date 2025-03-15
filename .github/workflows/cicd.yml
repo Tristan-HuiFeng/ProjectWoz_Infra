@@ -57,6 +57,12 @@ jobs:
     if: github.event_name == 'push'  &&  github.ref == 'refs/heads/main'
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: check directory
+        run: ls -la
+
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -74,9 +80,6 @@ jobs:
           aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       
-      - name: checkout
-        uses: actions/checkout@v4
-
       - name: Change to Terraform Directory
         run: cd iac/app
 
