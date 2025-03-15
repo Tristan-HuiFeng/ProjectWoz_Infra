@@ -102,7 +102,7 @@ func TestRunDiscovery(t *testing.T) {
 	mockResource.On("Name").Return("s3")
 
 	// Call RunDiscovery
-	returnedJobID, err := awscloud.RunDiscovery(cfg, mockDiscoveryRepo, []awscloud.ResourceDiscovery{mockResource})
+	returnedJobID, err := awscloud.RunDiscovery(cfg, mockDiscoveryRepo, "123", []awscloud.ResourceDiscovery{mockResource})
 
 	// Assertions
 	assert.NoError(t, err)
@@ -139,7 +139,7 @@ func TestRetrival(t *testing.T) {
 	mockResource.On("Name").Return("s3")
 
 	// Call Retrival
-	err := awscloud.RunRetrival(cfg, mockDiscoveryRepo, mockConfigRepo, jobID, []awscloud.ResourceDiscovery{mockResource})
+	err := awscloud.RunRetrieval(cfg, mockDiscoveryRepo, mockConfigRepo, jobID, []awscloud.ResourceDiscovery{mockResource})
 
 	// Assertions
 	assert.NoError(t, err)
