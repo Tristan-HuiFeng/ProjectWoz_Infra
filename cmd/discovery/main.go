@@ -88,14 +88,8 @@ func init() {
 
 }
 
-func handler(ctx context.Context) error {
-	// Assuming discoveryRepo and AWS Config are provided from somewhere
-
-	log.Info().Msg("running interval discovery")
-
-	clientID := "050752608470"
-
-	log.Info().Str("client id", clientID).Msg("setting up discovery for client")
+func awsHandler(clientID string) error {
+	log.Info().Str("client id", clientID).Msg("setting up discovery for aws client")
 	// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
 	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", clientID))
 	if err != nil {
@@ -127,7 +121,17 @@ func handler(ctx context.Context) error {
 		return err
 	}
 
-	log.Info().Str("client id", clientID).Str("jobID", jobID.Hex()).Msg("discovery process completed for client")
+	log.Info().Str("client id", clientID).Str("jobID", jobID.Hex()).Msg("discovery process completed for aws client")
+}
+
+func handler(ctx context.Context) error {
+	// Assuming discoveryRepo and AWS Config are provided from somewhere
+
+	log.Info().Msg("running interval discovery")
+
+	clientID := "050752608470"
+
+	awsHandler(clientID)
 
 	log.Info().Msg("interval discovery process completed")
 
