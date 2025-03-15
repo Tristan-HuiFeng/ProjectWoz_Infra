@@ -11,21 +11,30 @@ tasks:
     - for:
         var: LAMBDAS
       cmd: |
-          echo "Building Lambda: {{.CMD_DIR}}/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
+          echo "Building Lambda: bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
           GOOS=linux GOARCH=amd64 go build -o {{.CMD_DIR}}/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
     sources:
       - "{{.CMD_DIR}}/**/main.go"
     generates:
       - "{{.CMD_DIR}}/**/bootstrap"
 
-  # package:
-  #   desc: "Zip all Lambda functions"
-  #   deps: [build]
-  #   cmds:
-  #     - |
-  #       for lambda in {{.LAMBDAS}}; do
-  #         zip -j {{.CMD_DIR}}/$lambda.zip {{.CMD_DIR}}/$lambda/bootstrap
-  #       done
+  package:
+    desc: "Zip all Lambda functions"
+    deps: [build]
+    cmds:
+      - for:
+          var: LAMBDAS
+        cmd: |
+          zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
+  
+  upload:
+    desc: "Upload all Lambda functions to s3"
+    deps: [package]
+    cmds:
+      - for:
+          var: LAMBDAS
+        cmd: |
+          aws s3 cp bin/{{.ITEM}}/bootstrap.zip s3://cs464-lambda-s3/{{.ITEM}}/bootstrap.zip
 
   # deploy:
   #   desc: "Deploy all Lambda functions to AWS"
@@ -35,10 +44,7 @@ tasks:
   #       for lambda in {{.LAMBDAS}}; do
   #         aws lambda update-function-code --function-name $lambda --zip-file fileb://{{.CMD_DIR}}/$lambda.zip
   #       done
-  #   env:
-  #     AWS_ACCESS_KEY_ID: "{{.AWS_ACCESS_KEY_ID}}"
-  #     AWS_SECRET_ACCESS_KEY: "{{.AWS_SECRET_ACCESS_KEY}}"
-  #     AWS_REGION: "us-east-1"
+
 
   clean:
     desc: "Clean build artifacts"

@@ -9,6 +9,10 @@ module "sqs" {
   source = "./modules/sqs"
 }
 
+module "s3" {
+  source = "./modules/s3"
+}
+
 # module "rds" {
 #   source        = "./modules/rds"
 #   subnet_db_ids = module.vpc.subnet_db_id
