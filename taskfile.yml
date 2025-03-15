@@ -8,10 +8,11 @@ tasks:
   build:
     desc: "Build all Lambda functions"
     cmds:
-      - |
-        for lambda in {{.LAMBDAS}}; do
-          GOOS=linux GOARCH=amd64 go build -o {{.CMD_DIR}}/$lambda/bootstrap {{.CMD_DIR}}/$lambda/main.go
-        done
+    - for:
+        var: LAMBDAS
+      cmd: |
+          echo "Building Lambda: {{.CMD_DIR}}/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
+          GOOS=linux GOARCH=amd64 go build -o {{.CMD_DIR}}/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
     sources:
       - "{{.CMD_DIR}}/**/main.go"
     generates:
