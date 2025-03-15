@@ -135,6 +135,14 @@ resource "aws_lambda_function" "discovery" {
   }
   timeout          = 45
   source_code_hash = data.archive_file.discovery_lambda_zip.output_base64sha256
+
+  publish = true
+}
+
+resource "aws_lambda_alias" "discovery_alias" {
+  name             = "live"
+  function_name    = aws_lambda_function.discovery.function_name
+  function_version = aws_lambda_function.discovery.version
 }
 
 # resource "aws_lambda_event_source_mapping" "discovery" {
@@ -176,6 +184,14 @@ resource "aws_lambda_function" "retrieval" {
   }
   timeout          = 45
   source_code_hash = data.archive_file.retrieval_lambda_zip.output_base64sha256
+
+  publish = true
+}
+
+resource "aws_lambda_alias" "retrieval_alias" {
+  name             = "live"
+  function_name    = aws_lambda_function.retrieval.function_name
+  function_version = aws_lambda_function.retrieval.version
 }
 
 resource "aws_lambda_event_source_mapping" "retrieval" {
@@ -216,6 +232,15 @@ resource "aws_lambda_function" "scan" {
   }
   timeout          = 45
   source_code_hash = data.archive_file.scan_lambda_zip.output_base64sha256
+
+  publish = true
+  
+}
+
+resource "aws_lambda_alias" "scan_alias" {
+  name             = "live"
+  function_name    = aws_lambda_function.scan.function_name
+  function_version = aws_lambda_function.scan.version
 }
 
 resource "aws_lambda_event_source_mapping" "scan" {
