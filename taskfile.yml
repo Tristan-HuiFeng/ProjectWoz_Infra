@@ -12,7 +12,7 @@ tasks:
         var: LAMBDAS
       cmd: |
           echo "Building Lambda: bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
-          GOOS=linux GOARCH=amd64 go build -o {{.CMD_DIR}}/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
+          GOOS=linux GOARCH=amd64 go build -o bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
     sources:
       - "{{.CMD_DIR}}/**/main.go"
     generates:
