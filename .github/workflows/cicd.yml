@@ -57,7 +57,7 @@ jobs:
           path: bin/
 
       - name: Check artifacts
-        cmd: ls -la bin/
+        run: ls -la bin/
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
