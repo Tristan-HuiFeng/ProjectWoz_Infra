@@ -35,9 +35,12 @@ jobs:
       - name: Build Lambdas 
         run: task build
 
+      - name: Check artifacts
+        run: ls -la bin/
+
       - name: Zip Lambdas 
         run: task package
-        
+
       - name: Check artifacts
         run: ls -la bin/
 
