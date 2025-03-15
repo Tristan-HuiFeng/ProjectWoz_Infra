@@ -73,6 +73,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      
+      - name: checkout
+        uses: actions/checkout@v4
 
       - name: Change to Terraform Directory
         run: cd iac/app
