@@ -83,6 +83,9 @@ jobs:
       - name: Change to Terraform Directory
         run: cd iac/app
 
+      - name: check directory
+        run: ls -la
+
       - name: Terraform Setup
         uses: hashicorp/setup-terraform@v3
 
