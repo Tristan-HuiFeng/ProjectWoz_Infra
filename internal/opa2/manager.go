@@ -1,18 +1,21 @@
 package opa2
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"html/template"
 
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud"
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
+	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/notify"
 
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, resources []awscloud.ResourceDiscovery) error {
+func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, resources []awscloud.ResourceDiscovery, clientEmail string) error {
 	log.Info().Str("Discovery ID", discoveryID.Hex()).Msg("Starting misconfig scan")
 
 	for _, resource := range resources {
@@ -30,7 +33,7 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 		// 	continue
 		// }
 
-		regoPolicy, err := regoRepo.FindByResourceType("s3")
+		regoPolicy, err := regoRepo.FindByResourceType(resource.Name())
 		if err != nil {
 			log.Warn().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to get rego policy")
 			continue
@@ -39,6 +42,7 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 		log.Info().Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Str("Rego Query", regoPolicy.Query).Str("Rego Policy", regoPolicy.Rego).Msg("rego debug")
 
 		var scanResults []interface{}
+		var filteredResults []ScanResult
 
 		for _, config := range configs {
 
@@ -62,6 +66,10 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 
 			scanResults = append(scanResults, scanResult)
 
+			if len(misconfigResult) == 0 {
+				filteredResults = append(filteredResults, scanResult)
+			}
+
 		}
 
 		result, err := scanRepo.InsertMany(scanResults)
@@ -72,9 +80,41 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 		}
 		log.Info().Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Int("inserted", len(result)).Msg("Scan result inserted successfully")
 
+		sendScanResultEmail(filteredResults, clientEmail)
 	}
 
 	return nil
+}
+
+func sendScanResultEmail(misconfigs []ScanResult, clientEmail string) {
+
+	templateFile := "email_template.html"
+	tmpl, err := template.ParseFiles(templateFile)
+	if err != nil {
+		log.Warn().Err(err).Str("function", "sendScanResultEmail").Msg("failed to parse email template")
+		return
+	}
+
+	var body bytes.Buffer
+	err = tmpl.Execute(&body, misconfigs)
+	if err != nil {
+		log.Warn().Err(err).Str("function", "sendScanResultEmail").Msg("failed to generate email template")
+		return
+	}
+
+	config := notify.EmailConfig{
+		To:      []string{clientEmail},
+		Subject: "ProjectWoz Notification - Security Scan Failed for Resource " + misconfigs[0].ResourceType,
+		Body:    body.String(),
+	}
+
+	if err := notify.SendEmail(config); err != nil {
+		log.Warn().Err(err).Str("function", "sendScanResultEmail").Msg("failed to send email")
+		return
+	}
+
+	log.Info().Str("function", "sendScanResultEmail").Msg("successfully sent email")
+
 }
 
 func setupScan(name string) ([]string, string, error) {

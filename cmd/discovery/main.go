@@ -124,6 +124,8 @@ func awsHandler(clientID string, clientEmail string) error {
 	}
 
 	log.Info().Str("client id", clientID).Str("jobID", jobID.Hex()).Msg("discovery process completed for aws client")
+
+	return nil
 }
 
 func handler(ctx context.Context) error {

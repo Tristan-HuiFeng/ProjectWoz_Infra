@@ -28,9 +28,10 @@ var (
 	processingRoleCfg aws.Config
 )
 
-type Job struct {
-	ClientID string `json:"client_id"`
-	JobID    string `json:"job_id"`
+type Message struct {
+	ClientID    string `json:"client_id"`
+	JobID       string `json:"job_id"`
+	ClientEmail string `json:"client_email"`
 }
 
 func init() {
@@ -97,7 +98,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	for _, message := range sqsEvent.Records {
 		log.Info().Str("messageID", message.MessageId).Msg("Processing SQS message")
 
-		var job Job
+		var job Message
 		err := json.Unmarshal([]byte(message.Body), &job)
 		if err != nil {
 			log.Error().Err(err).Str("messageID", message.MessageId).Msg("Failed to unmarshal SQS message body")
@@ -109,7 +110,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
 		}
 
-		err = opa2.RunScan(configRepo, scanRepo, regoRepo, id, resources)
+		err = opa2.RunScan(configRepo, scanRepo, regoRepo, id, resources, job.ClientEmail)
 		if err != nil {
 			log.Fatal().Msgf("Scan failed, %v", err)
 		}
