@@ -13,7 +13,8 @@ terraform {
     key            = "state/terraform-app.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "cs464-terraform-state-table"
+    use_lockfile   = true
+    # dynamodb_table = "cs464-terraform-state-table"
   }
 }
 
