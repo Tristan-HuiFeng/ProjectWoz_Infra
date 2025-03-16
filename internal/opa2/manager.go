@@ -3,17 +3,21 @@ package opa2
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"fmt"
 	"html/template"
 
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud"
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
-	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/notify"
+	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/notify"
 
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
+//go:embed scanResultEmailTemplate.tmpl
+var tmplContent string
 
 func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, resources []awscloud.ResourceDiscovery, clientEmail string) error {
 	log.Info().Str("Discovery ID", discoveryID.Hex()).Msg("Starting misconfig scan")
@@ -88,8 +92,9 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 
 func sendScanResultEmail(misconfigs []ScanResult, clientEmail string) {
 
-	templateFile := "email_template.html"
-	tmpl, err := template.ParseFiles(templateFile)
+	//templateFile := "./internal/notifyscanResultEmailTempalte.tmpl"
+	//tmpl, err := template.ParseFiles(templateFile)
+	tmpl, err := template.New("scanResultEmail").Parse(tmplContent)
 	if err != nil {
 		log.Warn().Err(err).Str("function", "sendScanResultEmail").Msg("failed to parse email template")
 		return
