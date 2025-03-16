@@ -228,6 +228,7 @@ resource "aws_lambda_function" "scan" {
     variables = {
       MONGO_DB_STRING_PARAM = "/cs464/mongo_db_string"
       PROCESSING_ROLE = "/cs464/cross_account_role"
+      SMTP_PASSWORD_PARAM = "/cs464/smtp_password"
       SMTP_HOST="smtp.gmail.com"
       SMTP_PORT="587"
       SMTP_USER="flyingduckservices@gmail.com"

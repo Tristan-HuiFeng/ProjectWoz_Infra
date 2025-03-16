@@ -74,6 +74,12 @@ func init() {
 
 	}()
 
+	SMTP_PASSWORD, err := awscloud.GetParam(os.Getenv("SMTP_PASSWORD_PARAM"), true, processingRoleCfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to get db env from ssm")
+	}
+	os.Setenv("SMTP_PASSWORD", SMTP_PASSWORD)
+
 	// SCAN_QUEUE_URL, err := awscloud.GetParam(os.Getenv("SCAN_QUEUE_URL"), false, processingRoleCfg)
 	// if err != nil {
 	// 	log.Fatal().Err(err).Msg("unable to get scan queue url from ssm")
