@@ -28,8 +28,9 @@ var (
 // }
 
 type Message struct {
-	ClientID string `json:"client_id"`
-	JobID    string `json:"job_id"`
+	ClientID    string `json:"client_id"`
+	JobID       string `json:"job_id"`
+	ClientEmail string `json:"client_email"`
 }
 
 func init() {
@@ -88,7 +89,7 @@ func init() {
 
 }
 
-func awsHandler(clientID string) error {
+func awsHandler(clientID string, clientEmail string) error {
 	log.Info().Str("client id", clientID).Msg("setting up discovery for aws client")
 	// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
 	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", clientID))
@@ -105,8 +106,9 @@ func awsHandler(clientID string) error {
 	}
 
 	msg := Message{
-		ClientID: clientID,
-		JobID:    jobID.Hex(),
+		ClientID:    clientID,
+		JobID:       jobID.Hex(),
+		ClientEmail: clientEmail,
 	}
 
 	messageBody, err := json.Marshal(msg)
@@ -130,8 +132,9 @@ func handler(ctx context.Context) error {
 	log.Info().Msg("running interval discovery")
 
 	clientID := "050752608470"
+	clientEmail := "user.ad.proj@gmail.com"
 
-	awsHandler(clientID)
+	awsHandler(clientID, clientEmail)
 
 	log.Info().Msg("interval discovery process completed")
 
