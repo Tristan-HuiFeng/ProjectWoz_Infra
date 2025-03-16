@@ -70,7 +70,7 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 
 			scanResults = append(scanResults, scanResult)
 
-			if len(misconfigResult) == 0 {
+			if len(misconfigResult) != 0 {
 				filteredResults = append(filteredResults, scanResult)
 			}
 
