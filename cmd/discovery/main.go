@@ -133,10 +133,10 @@ func handler(ctx context.Context) error {
 
 	log.Info().Msg("running interval discovery")
 
-	clientID := "050752608470"
-	clientEmail := "user.ad.proj@gmail.com"
+	// clientID := "050752608470"
+	// clientEmail := "user.ad.proj@gmail.com"
 
-	awsHandler(clientID, clientEmail)
+	// awsHandler(clientID, clientEmail)
 
 	log.Info().Msg("interval discovery process completed")
 
