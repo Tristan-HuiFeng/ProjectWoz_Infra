@@ -109,7 +109,10 @@ resource "aws_security_group" "lambda" {
 
 data "archive_file" "discovery_lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../../../../bin/discovery/bootstrap"
+  source_file = [
+    "${path.module}/../../../../bin/discovery/bootstrap", 
+    "${path.module}/../../../../bin/discovery/clientLibraryConfig-awswoz.json"
+  ]
   output_path = "${path.module}/../../../../bin/discovery/bootstrap.zip"
 }
 
