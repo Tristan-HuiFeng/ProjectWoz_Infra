@@ -13,6 +13,7 @@ tasks:
       cmd: |
           echo "Building Lambda: bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
           GOOS=linux GOARCH=amd64 go build -o bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
+    - cp clientLibraryConfig-awswoz.json bin/discovery/
     sources:
       - "{{.CMD_DIR}}/**/main.go"
     generates:
