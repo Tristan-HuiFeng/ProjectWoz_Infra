@@ -7,12 +7,15 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"cloud.google.com/go/storage"
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/api/iterator"
 )
 
 var (
@@ -128,15 +131,45 @@ func awsHandler(clientID string, clientEmail string) error {
 	return nil
 }
 
+func gcpHandler(clientGCPProjectID string, clientEmail string) error {
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create client for gcp storage")
+		return err
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	it := client.Buckets(ctx, clientGCPProjectID)
+	for {
+		battrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed while iterating gcp buckets")
+			return err
+		}
+		log.Info().Msgf("Bucket: %v\n", battrs.Name)
+	}
+	return nil
+}
+
 func handler(ctx context.Context) error {
 	// Assuming discoveryRepo and AWS Config are provided from somewhere
 
 	log.Info().Msg("running interval discovery")
 
 	// clientID := "050752608470"
-	// clientEmail := "user.ad.proj@gmail.com"
+	clientEmail := "user.ad.proj@gmail.com"
+	clientGCPProjectID := "the-other-450607-a4"
 
 	// awsHandler(clientID, clientEmail)
+
+	gcpHandler(clientGCPProjectID, clientEmail)
 
 	log.Info().Msg("interval discovery process completed")
 

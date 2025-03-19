@@ -23,7 +23,7 @@ func TestGcsService(t *testing.T) {
 	log.Info().Msg("Testing ListBuckets with real GCP credentials...")
 
 	gcsService := &gcpcloud.GcsService{
-		ProjectId: projectID,
+		ProjectId:      projectID,
 		ServiceAccount: serviceAccount,
 	}
 

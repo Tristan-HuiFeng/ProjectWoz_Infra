@@ -131,6 +131,8 @@ resource "aws_lambda_function" "discovery" {
       MONGO_DB_STRING_PARAM = "/cs464/mongo_db_string"
       PROCESSING_ROLE = "/cs464/cross_account_role"
       RETRIEVAL_QUEUE_PARAM = "/cs464/retrieval_queue_url"
+      GOOGLE_APPLICATION_CREDENTIALS = "clientLibraryConfig-awswoz.json"
+      GOOGLE_CLOUD_PROJECT = "cs464-454011"
     }
   }
   timeout          = 45

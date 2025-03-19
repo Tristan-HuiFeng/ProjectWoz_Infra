@@ -33,28 +33,27 @@ type GetCallerIdentityToken struct {
 
 // GcpStsTokenExchangeRequest represents the token request to Google STS
 type GcpStsTokenExchangeRequest struct {
-	Audience            string `json:"audience"`
-	GrantType           string `json:"grantType"`
-	RequestedTokenType  string `json:"requestedTokenType"`
-	Scope               string `json:"scope"`
-	SubjectTokenType    string `json:"subjectTokenType"`
-	SubjectToken        string `json:"subjectToken"`
+	Audience           string `json:"audience"`
+	GrantType          string `json:"grantType"`
+	RequestedTokenType string `json:"requestedTokenType"`
+	Scope              string `json:"scope"`
+	SubjectTokenType   string `json:"subjectTokenType"`
+	SubjectToken       string `json:"subjectToken"`
 }
 
 // GcpStsTokenExchangeResponse represents the token response from Google STS
 type GcpStsTokenExchangeResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken     string `json:"access_token"`
 	IssuedTokenType string `json:"issued_token_type"`
-	TokenType string `json:"token_type"`
-	ExpiresIn int `json:"expires_in"`
+	TokenType       string `json:"token_type"`
+	ExpiresIn       int    `json:"expires_in"`
 }
-
 
 func getFederatedTokenFromAws(ctx context.Context, gcpRegisteredIdProvider string) (*GcpStsTokenExchangeResponse, error) {
 	// Prepare a GetCallerIdentity request
 	url := "https://sts.amazonaws.com/?Action=GetCallerIdentity&Version=2011-06-15"
 	getCallerIdentityRequest, err := http.NewRequest("POST", url, nil)
-	
+
 	if err != nil {
 		fmt.Printf("unable to create request: %v\n", err)
 	}
@@ -91,8 +90,8 @@ func getFederatedTokenFromAws(ctx context.Context, gcpRegisteredIdProvider strin
 
 	// Prepare GetCallerIdentityToken for Google
 	callerIdentityToken := GetCallerIdentityToken{
-		URL:    getCallerIdentityRequest.URL.String(),
-		Method: getCallerIdentityRequest.Method,
+		URL:     getCallerIdentityRequest.URL.String(),
+		Method:  getCallerIdentityRequest.Method,
 		Headers: []Header{},
 	}
 
@@ -196,27 +195,27 @@ func createdSignedJwtTokenWithSts(stsToken *GcpStsTokenExchangeResponse, service
 	if err != nil {
 		return nil, fmt.Errorf("error reading response: %v", err)
 	}
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("error response (%d): %s", resp.StatusCode, body)
 	}
-	
+
 	// Parse the response
 	var result struct {
 		AccessToken string `json:"accessToken"`
 		ExpireTime  string `json:"expireTime"`
 	}
-	
+
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
-	
+
 	// Parse expiry time
 	expiry, err := time.Parse(time.RFC3339, result.ExpireTime)
 	if err != nil {
 		expiry = time.Now().Add(time.Hour) // Default to 1 hour if parsing fails
 	}
-	
+
 	// Create oauth2 token
 	token := &oauth2.Token{
 		AccessToken: result.AccessToken,

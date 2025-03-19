@@ -10,7 +10,7 @@ import (
 )
 
 type GcsService struct {
-	ProjectId string
+	ProjectId      string
 	ServiceAccount string
 }
 
@@ -57,10 +57,9 @@ func setupGcsClient(ctx context.Context, serviceAccount string) (*storage.Servic
 	}
 
 	log.Info().Msg("Created storage service")
-	
+
 	return storageService, nil
 }
-
 
 // ListBuckets lists all buckets in the GCP project
 func listBuckets(ctx context.Context, projectID string, serviceAccount string) ([]string, error) {
@@ -70,19 +69,19 @@ func listBuckets(ctx context.Context, projectID string, serviceAccount string) (
 	}
 
 	log.Info().Msgf("Listing buckets in project %s", projectID)
-	
+
 	buckets, err := service.Buckets.List(projectID).Do()
 	if err != nil {
 		return nil, err
 	}
 
 	log.Info().Msgf("Found %d buckets", len(buckets.Items))
-	
+
 	var bucketNames []string
 	for _, bucket := range buckets.Items {
 		bucketNames = append(bucketNames, bucket.Name)
 	}
-	
+
 	return bucketNames, nil
 }
 
