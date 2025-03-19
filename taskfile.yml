@@ -26,7 +26,11 @@ tasks:
       - for:
           var: LAMBDAS
         cmd: |
-          zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
+          if [ "{{.ITEM}}" == "discovery" ]; then
+            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswoz.json
+          else
+            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
+          fi
   
 
   # upload:
