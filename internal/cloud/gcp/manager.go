@@ -7,14 +7,13 @@ package gcpcloud
 */
 
 import (
-	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud"
+	cloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud"
 
 	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -24,8 +23,8 @@ const (
 )
 
 type ResourceDiscovery interface {
-	Discover() ([]string, error)                                                      // Discover resources for a specific GCP service
-	RetrieveConfig(bucketNames []string) (map[string]map[string]interface{}, error)   // Retrieve resource configuration
+	Discover() ([]string, error)                                                    // Discover resources for a specific GCP service
+	RetrieveConfig(bucketNames []string) (map[string]map[string]interface{}, error) // Retrieve resource configuration
 	Name() string
 }
 
@@ -37,7 +36,7 @@ func NewDiscoveryJob() *cloud.DiscoveryJob {
 	}
 }
 
-func RunDiscovery(/* cfg interface{}, */discoveryRepo DiscoveryRepository, resources []ResourceDiscovery) (primitive.ObjectID, error) {
+func RunDiscovery(discoveryRepo DiscoveryRepository, resources []ResourceDiscovery) (bson.ObjectID, error) {
 	log.Info().Msg("Starting discovery process...")
 
 	job := NewDiscoveryJob()
@@ -45,7 +44,7 @@ func RunDiscovery(/* cfg interface{}, */discoveryRepo DiscoveryRepository, resou
 	jobID, err := discoveryRepo.Create(job)
 	if err != nil {
 		log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to create discovery job")
-		return primitive.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
+		return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 	}
 	log.Info().Str("jobID", jobID.Hex()).Msg("Discovery job created")
 
@@ -57,13 +56,13 @@ func RunDiscovery(/* cfg interface{}, */discoveryRepo DiscoveryRepository, resou
 
 		if err != nil {
 			log.Error().Err(err).Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to discover resources")
-			return primitive.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
+			return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 		}
 
 		err = discoveryRepo.UpdateJob(jobID, resourceName, resourceIDs)
 		if err != nil {
 			log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to update job with resources")
-			return primitive.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
+			return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 		}
 
 	}
@@ -71,14 +70,14 @@ func RunDiscovery(/* cfg interface{}, */discoveryRepo DiscoveryRepository, resou
 	err = discoveryRepo.UpdateStatus(jobID, CompletedStatus)
 	if err != nil {
 		log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to update job status to complete")
-		return primitive.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
+		return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 	}
 
 	log.Info().Str("jobID", jobID.Hex()).Msg("Discovery process completed successfully")
 	return jobID, nil
 }
 
-func RunRetrival(/* cfg interface{}, */discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID primitive.ObjectID, resources []ResourceDiscovery) error {
+func RunRetrival(discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, resources []ResourceDiscovery) error {
 	log.Info().Str("discoveryID", discoveryID.Hex()).Msg("Starting retrieval process...")
 
 	discoveryJob, err := discoveryRepo.FindByID(discoveryID)
