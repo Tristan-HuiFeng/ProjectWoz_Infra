@@ -18,6 +18,7 @@ require (
 	github.com/open-policy-agent/opa v1.2.0
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.10.0
+	go.mongodb.org/mongo-driver v1.17.3
 	go.mongodb.org/mongo-driver/v2 v2.1.0
 	golang.org/x/oauth2 v0.28.0
 	google.golang.org/api v0.224.0
