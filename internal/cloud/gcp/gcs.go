@@ -32,12 +32,17 @@ func (s *GcsService) RetrieveConfig(bucketNames []string) (map[string]map[string
 		}
 
 		policy, err := getBucketPolicy(bucket, s.ServiceAccount)
+		if err != nil {
+			continue // Skip to the next bucket
+		}
 
+		metadata, err := getBucketMetadata(bucket, s.ServiceAccount)
 		if err != nil {
 			continue // Skip to the next bucket
 		}
 
 		configs[bucket]["bucket_policy"] = policy
+		configs[bucket]["bucket_metadata"] = metadata
 	}
 
 	return configs, nil
@@ -101,4 +106,23 @@ func getBucketPolicy(bucketName string, serviceAccount string) (*storage.Policy,
 	}
 
 	return policy, nil
+}
+
+// getBucketMetadata gets the bucket metadata.
+func getBucketMetadata(bucketName string, serviceAccount string) (*storage.Bucket, error) {
+	ctx := context.Background()
+	service, err := setupGcsClient(ctx, serviceAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info().Msgf("Getting metadata for bucket %s", bucketName)
+
+	bucket, err := service.Buckets.Get(bucketName).Do()
+
+	if err != nil {
+		return nil, fmt.Errorf("Bucket(%q).Attrs: %w", bucketName, err)
+	}
+
+	return bucket, nil
 }

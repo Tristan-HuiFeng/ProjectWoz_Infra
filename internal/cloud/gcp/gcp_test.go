@@ -37,12 +37,13 @@ func TestGcsService(t *testing.T) {
 	// Call getBucketPolicy with the loaded GCP config
 	log.Info().Msg("Testing getBucketPolicy with real GCP credentials...")
 
-	policy, err := gcsService.RetrieveConfig(buckets)
+	configs, err := gcsService.RetrieveConfig(buckets)
 	if err != nil {
 		t.Errorf("Error retrieving bucket policy: %v", err)
 	}
 
-	for bucketName, policy := range policy {
-		log.Info().Msgf("Bucket policy for %s: %v", bucketName, policy)
+	for bucketName, config := range configs {
+		log.Info().Msgf("Bucket policy for %s: %v", bucketName, config["bucket_policy"])
+		log.Info().Msgf("Bucket metadata for %s: %v", bucketName, config["bucket_metadata"])
 	}
 }
