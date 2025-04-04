@@ -19,18 +19,18 @@ tasks:
     generates:
       - "{{.CMD_DIR}}/**/bootstrap"
 
-  package:
-    desc: "Zip all Lambda functions"
-    deps: [build]
-    cmds:
-      - for:
-          var: LAMBDAS
-        cmd: |
-          if [ "{{.ITEM}}" == "discovery" ]; then
-            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswoz.json
-          else
-            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
-          fi
+  # package:
+  #   desc: "Zip all Lambda functions"
+  #   deps: [build]
+  #   cmds:
+  #     - for:
+  #         var: LAMBDAS
+  #       cmd: |
+  #         if [ "{{.ITEM}}" == "discovery" ]; then
+  #           zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswoz.json
+  #         else
+  #           zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
+  #         fi
   
 
   # upload:
