@@ -1,1 +1,1 @@
-s3_bucket_state_name "cs464-terraform-state-dev"
+s3_bucket_state_name = "cs464-terraform-state-dev"
