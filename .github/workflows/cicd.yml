@@ -152,7 +152,7 @@ jobs:
 
       - name: Terraform Init
         id: init
-        run: terraform init -backend-config="prod.tfvars" -input=false
+        run: terraform init -backend-config="config/prod.tfvars" -input=false
         working-directory: ./iac/app
 
       - name: Terraform Validate

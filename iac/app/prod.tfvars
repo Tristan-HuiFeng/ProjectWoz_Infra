@@ -1,1 +1,0 @@
-s3_bucket_state_name = "cs464-terraform-state"

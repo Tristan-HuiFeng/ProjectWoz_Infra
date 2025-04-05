@@ -10,7 +10,6 @@ terraform {
 
   backend "s3" {
     # bucket       = "cs464-terraform-state"
-    bucket       = var.s3_bucket_state_name
     key          = "state/terraform-app.tfstate"
     region       = "us-east-1"
     encrypt      = true
