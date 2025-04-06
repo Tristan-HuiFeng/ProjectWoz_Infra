@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "lambda" {
-  bucket = "cs464-lambda-s3"
+  bucket = "cs464-lambda-s3-${var.env}"
 
   tags = {
     Environment = "Prod"
