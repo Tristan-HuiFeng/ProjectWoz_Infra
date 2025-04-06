@@ -70,38 +70,38 @@ resource "aws_iam_policy_attachment" "custom_lambda_policy_attachment" {
   policy_arn = aws_iam_policy.custom_lambda_policy.arn
 }
 
-resource "aws_security_group" "lambda" {
-  vpc_id = "vpc-0f15d01f0801ba4a2"
-  name   = "lambda_security_group"
+# resource "aws_security_group" "lambda" {
+#   vpc_id = "vpc-0f15d01f0801ba4a2"
+#   name   = "lambda_security_group"
 
-  egress {
-    protocol    = "-1"
-    from_port   = 0
-    to_port     = 0
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   egress {
+#     protocol    = "-1"
+#     from_port   = 0
+#     to_port     = 0
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  # egress {
-  #   protocol        = "tcp"
-  #   from_port       = 443
-  #   to_port         = 443
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
+#   # egress {
+#   #   protocol        = "tcp"
+#   #   from_port       = 443
+#   #   to_port         = 443
+#   #   cidr_blocks = ["0.0.0.0/0"]
+#   # }
 
-  # egress {
-  #   from_port   = 5000
-  #   to_port     = 5000
-  #   protocol    = "tcp"
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
+#   # egress {
+#   #   from_port   = 5000
+#   #   to_port     = 5000
+#   #   protocol    = "tcp"
+#   #   cidr_blocks = ["0.0.0.0/0"]
+#   # }
 
-  # egress {
-  #   from_port   = 80
-  #   to_port     = 80
-  #   protocol    = "tcp"
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
-}
+#   # egress {
+#   #   from_port   = 80
+#   #   to_port     = 80
+#   #   protocol    = "tcp"
+#   #   cidr_blocks = ["0.0.0.0/0"]
+#   # }
+# }
 
 ##################################
 # Discovery Lambda
