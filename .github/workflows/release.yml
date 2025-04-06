@@ -1,0 +1,114 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.0'
+    
+      - name: Go Format
+        run: gofmt -s -w . && git diff --exit-code
+
+      - name: Go Vet
+        run: go vet ./...
+
+      - name: Go Tidy
+        run: go mod tidy && git diff --exit-code
+
+      - name: Go Mod Verify
+        run: go mod verify
+
+      - name: Install Go Task
+        run: go install github.com/go-task/task/v3/cmd/task@latest
+
+      - name: Build Lambdas 
+        run: task build
+
+      - name: Check artifacts
+        run: ls -la bin/
+
+      - name: Zip Lambdas 
+        run: task package
+
+      - name: Check artifacts
+        run: ls -la bin/
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-bin
+          path: |
+            bin/
+            !bin/**/*.zip
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'  &&  github.ref == 'refs/heads/main'
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: check directory
+        run: ls -la
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-bin
+          path: bin/
+
+      - name: Check artifacts
+        run: ls -la bin/
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      
+      - name: Terraform Setup
+        uses: hashicorp/setup-terraform@v3
+
+      # - name: Terraform fmt
+      #   id: fmt
+      #   run: terraform fmt -check
+      #   continue-on-error: true
+      #   working-directory: ./iac/app
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config="config/prod.config" -input=false
+        working-directory: ./iac/app
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./iac/app
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file="env/prod.tfvars" -out tfplan -no-color -input=false
+        continue-on-error: false
+        working-directory: ./iac/app
+      
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply tfplan
+        working-directory: ./iac/app
+
+              
