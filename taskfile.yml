@@ -40,24 +40,24 @@ tasks:
       cmd: |
           echo "Building Lambda: bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
           GOOS=linux GOARCH=amd64 go build -o bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
-    - cp clientLibraryConfig-awswozdev.json bin/discovery/
+    - cp clientLibraryConfig-awswozdev.json bin/discovery/clientLibraryConfig-awswoz.json
     sources:
       - "{{.CMD_DIR}}/**/main.go"
     generates:
       - "{{.CMD_DIR}}/**/bootstrap"
 
-  package-dev:
-    desc: "Zip all Lambda functions"
-    deps: [build]
-    cmds:
-      - for:
-          var: LAMBDAS
-        cmd: |
-          if [ "{{.ITEM}}" == "discovery" ]; then
-            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswozdev.json
-          else
-            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
-          fi
+  # package-dev:
+  #   desc: "Zip all Lambda functions"
+  #   deps: [build]
+  #   cmds:
+  #     - for:
+  #         var: LAMBDAS
+  #       cmd: |
+  #         if [ "{{.ITEM}}" == "discovery" ]; then
+  #           zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswozdev.json
+  #         else
+  #           zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
+  #         fi
   
 
   # upload:

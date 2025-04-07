@@ -39,7 +39,7 @@ jobs:
         run: ls -la bin/
 
       - name: Zip Lambdas 
-        run: task package-dev
+        run: task package
 
       - name: Check artifacts
         run: ls -la bin/
