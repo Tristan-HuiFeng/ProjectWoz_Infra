@@ -42,6 +42,7 @@ tasks:
           GOOS=linux GOARCH=amd64 go build -o bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
     - cp clientLibraryConfig-awswoz-dev.json bin/discovery/clientLibraryConfig-awswoz.json
     - ls -la bin/discovery/
+    - cat bin/discovery/clientLibraryConfig-awswoz.json
     sources:
       - "{{.CMD_DIR}}/**/main.go"
     generates:
