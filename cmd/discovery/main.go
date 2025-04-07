@@ -165,7 +165,8 @@ func handler(ctx context.Context) error {
 
 	// clientID := "050752608470"
 	clientEmail := "user.ad.proj@gmail.com"
-	clientGCPProjectID := "the-other-450607-a4"
+	// clientGCPProjectID := "the-other-450607-a4"
+	clientGCPProjectID := "cs464-454011"
 
 	// awsHandler(clientID, clientEmail)
 
