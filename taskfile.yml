@@ -28,6 +28,7 @@ tasks:
         cmd: |
           if [ "{{.ITEM}}" == "discovery" ]; then
             zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswoz.json
+            cat bin/discovery/clientLibraryConfig-awswoz.json
           else
             zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
           fi

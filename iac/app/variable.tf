@@ -1,3 +1,7 @@
 variable "env" {
-  type        = string
+  type = string
 }
+
+# variable "gcp_client_file" {
+#   type = string
+# }
