@@ -13,7 +13,7 @@ tasks:
       cmd: |
           echo "Building Lambda: bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
           GOOS=linux GOARCH=amd64 go build -o bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
-    - cp clientLibraryConfig-awswoz.json bin/discovery/
+    # - cp clientLibraryConfig-awswoz.json bin/discovery/
     sources:
       - "{{.CMD_DIR}}/**/main.go"
     generates:
@@ -27,40 +27,43 @@ tasks:
           var: LAMBDAS
         cmd: |
           if [ "{{.ITEM}}" == "discovery" ]; then
+            cp clientLibraryConfig-awswoz.json bin/discovery/
             zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswoz.json
             cat bin/discovery/clientLibraryConfig-awswoz.json
           else
             zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
           fi
 
-  build-dev:
-    desc: "Build all Lambda functions"
-    cmds:
-    - for:
-        var: LAMBDAS
-      cmd: |
-          echo "Building Lambda: bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
-          GOOS=linux GOARCH=amd64 go build -o bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
-    - cp clientLibraryConfig-awswoz-dev.json bin/discovery/clientLibraryConfig-awswoz.json
-    - ls -la bin/discovery/
-    - cat bin/discovery/clientLibraryConfig-awswoz.json
-    sources:
-      - "{{.CMD_DIR}}/**/main.go"
-    generates:
-      - "{{.CMD_DIR}}/**/bootstrap"
-
-  # package-dev:
-  #   desc: "Zip all Lambda functions"
-  #   deps: [build]
+  # build-dev:
+  #   desc: "Build all Lambda functions"
   #   cmds:
-  #     - for:
-  #         var: LAMBDAS
-  #       cmd: |
-  #         if [ "{{.ITEM}}" == "discovery" ]; then
-  #           zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswozdev.json
-  #         else
-  #           zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
-  #         fi
+  #   - for:
+  #       var: LAMBDAS
+  #     cmd: |
+  #         echo "Building Lambda: bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go"
+  #         GOOS=linux GOARCH=amd64 go build -o bin/{{.ITEM}}/bootstrap {{.CMD_DIR}}/{{.ITEM}}/main.go
+  #   # - cp clientLibraryConfig-awswoz-dev.json bin/discovery/clientLibraryConfig-awswoz.json
+  #   # - ls -la bin/discovery/
+  #   # - cat bin/discovery/clientLibraryConfig-awswoz.json
+  #   sources:
+  #     - "{{.CMD_DIR}}/**/main.go"
+  #   generates:
+  #     - "{{.CMD_DIR}}/**/bootstrap"
+
+  package-dev:
+    desc: "Zip all Lambda functions"
+    deps: [build]
+    cmds:
+      - for:
+          var: LAMBDAS
+        cmd: |
+          if [ "{{.ITEM}}" == "discovery" ]; then
+            cp clientLibraryConfig-awswoz-dev.json bin/discovery/clientLibraryConfig-awswoz.json
+            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswoz.json
+            cat bin/discovery/clientLibraryConfig-awswoz.json
+          else
+            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
+          fi
   
 
   # upload:

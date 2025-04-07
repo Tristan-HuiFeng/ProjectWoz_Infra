@@ -33,13 +33,13 @@ jobs:
         run: go install github.com/go-task/task/v3/cmd/task@latest
 
       - name: Build Lambdas 
-        run: task build-dev
+        run: task build
 
       - name: Check artifacts
         run: ls -la bin/
 
       - name: Zip Lambdas 
-        run: task package
+        run: task package-dev
 
       - name: Check artifacts
         run: ls -la bin/
