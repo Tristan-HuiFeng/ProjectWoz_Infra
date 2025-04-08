@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -28,9 +29,11 @@ var (
 )
 
 type Message struct {
-	ClientID    string `json:"client_id"`
-	JobID       string `json:"job_id"`
-	ClientEmail string `json:"client_email"`
+	ClientID        string `json:"client_id"`
+	JobID           string `json:"job_id"`
+	ClientEmail     string `json:"client_email"`
+	ResourceOwnerID string `json:"resource_owner_id"`
+	Provider        string `json:"provider"`
 }
 
 func init() {
@@ -90,6 +93,25 @@ func init() {
 
 }
 
+func awsHandler(job Message) error {
+	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", job.ClientID))
+	if err != nil {
+		log.Fatal().Msgf("unable to load SDK config, %v", err)
+	}
+
+	id, err := bson.ObjectIDFromHex(job.JobID)
+	if err != nil {
+		log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
+	}
+
+	err = awscloud.RunRetrieval(cfg, discoveryRepo, configRepo, id, resources, job.ClientEmail, job.ResourceOwnerID)
+	if err != nil {
+		log.Fatal().Msgf("Retrieval failed, %v", err)
+	}
+
+	return nil
+}
+
 func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	// Assuming discoveryRepo and AWS Config are provided from somewhere
 
@@ -103,19 +125,17 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			continue
 		}
 
-		cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", job.ClientID))
-		if err != nil {
-			log.Fatal().Msgf("unable to load SDK config, %v", err)
-		}
-
-		id, err := bson.ObjectIDFromHex(job.JobID)
-		if err != nil {
-			log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
-		}
-
-		err = awscloud.RunRetrieval(cfg, discoveryRepo, configRepo, id, resources)
-		if err != nil {
-			log.Fatal().Msgf("Retrieval failed, %v", err)
+		if job.Provider == "AWS" {
+			err = awsHandler(job)
+			if err != nil {
+				log.Fatal().Err(err).Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("AWS Handler Error")
+				return errors.New("error running AWS Handler")
+			}
+		} else if job.Provider == "GCP" {
+			log.Info().Msg("WIP")
+		} else {
+			log.Warn().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Provider not supported")
+			return errors.New("provider not supported")
 		}
 
 		err = awscloud.SendSQSMessage(string(message.Body), sqsClient, os.Getenv("SCAN_QUEUE_URL"))

@@ -31,9 +31,11 @@ var (
 // }
 
 type Message struct {
-	ClientID    string `json:"client_id"`
-	JobID       string `json:"job_id"`
-	ClientEmail string `json:"client_email"`
+	ClientID        string `json:"client_id"`
+	JobID           string `json:"job_id"`
+	ClientEmail     string `json:"client_email"`
+	ResourceOwnerID string `json:"resource_owner_id"`
+	Provider        string `json:"provider"`
 }
 
 func init() {
@@ -92,7 +94,7 @@ func init() {
 
 }
 
-func awsHandler(clientID string, clientEmail string) error {
+func awsHandler(clientID string, resourceOwnerID string, clientEmail string) error {
 	log.Info().Str("client id", clientID).Msg("setting up discovery for aws client")
 	// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
 	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", clientID))
@@ -102,16 +104,18 @@ func awsHandler(clientID string, clientEmail string) error {
 	}
 
 	// Run discovery with the parsed event data
-	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, clientID, resources)
+	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, clientID, resources, resourceOwnerID)
 	if err != nil {
 		log.Error().Err(err).Str("client id", clientID).Msg("Error running discovery")
 		return err
 	}
 
 	msg := Message{
-		ClientID:    clientID,
-		JobID:       jobID.Hex(),
-		ClientEmail: clientEmail,
+		ClientID:        clientID,
+		JobID:           jobID.Hex(),
+		ClientEmail:     clientEmail,
+		ResourceOwnerID: resourceOwnerID,
+		Provider:        "AWS",
 	}
 
 	messageBody, err := json.Marshal(msg)
@@ -163,12 +167,12 @@ func handler(ctx context.Context) error {
 
 	log.Info().Msg("running interval discovery")
 
-	// clientID := "050752608470"
+	// awsClientID := "050752608470"
 	clientEmail := "user.ad.proj@gmail.com"
 	clientGCPProjectID := "the-other-450607-a4"
 	// clientGCPProjectID := "cs464-454011"
 
-	// awsHandler(clientID, clientEmail)
+	// awsHandler(clientID, clientEmail, awsClientID)
 
 	gcpHandler(clientGCPProjectID, clientEmail)
 

@@ -31,13 +31,13 @@ func NewDiscoveryJob() *cloud.DiscoveryJob {
 	}
 }
 
-func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, clientID string, resources []ResourceDiscovery) (bson.ObjectID, error) {
+func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, clientID string, resources []ResourceDiscovery, resourceOwnerID string) (bson.ObjectID, error) {
 	log.Info().Msg("Starting discovery process...")
 
 	job := NewDiscoveryJob()
 	job.ClientID = clientID
 
-	jobID, err := discoveryRepo.Create(job)
+	jobID, err := discoveryRepo.Create(job, clientID, resourceOwnerID)
 	if err != nil {
 		log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to create discovery job")
 		return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
@@ -86,7 +86,7 @@ func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, clientID st
 	return jobID, nil
 }
 
-func RunRetrieval(cfg aws.Config, discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, resources []ResourceDiscovery) error {
+func RunRetrieval(cfg aws.Config, discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, resources []ResourceDiscovery, clientID string, resourceOwnerID string) error {
 	log.Info().Str("discoveryID", discoveryID.Hex()).Msg("Starting retrieval process...")
 
 	discoveryJob, err := discoveryRepo.FindByID(discoveryID)
@@ -119,10 +119,12 @@ func RunRetrieval(cfg aws.Config, discoveryRepo DiscoveryRepository, configRepo 
 
 		for resourceID, config := range configs {
 			resourceConfig := cloud.ResourceConfig{
-				DiscoveryJobID: discoveryID,
-				ResourceType:   resourceName,
-				ResourceID:     resourceID,
-				Config:         config,
+				DiscoveryJobID:  discoveryID,
+				ResourceOwnerID: resourceOwnerID,
+				Provider:        "AWS",
+				ResourceType:    resourceName,
+				ResourceID:      resourceID,
+				Config:          config,
 			}
 			resourceConfigs = append(resourceConfigs, resourceConfig)
 		}
