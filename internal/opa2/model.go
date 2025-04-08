@@ -12,6 +12,9 @@ type ScanResult struct {
 	Status           string        `bson:"status"`           // status of the Job
 	Pass             bool          `bson:"pass"`             // Fixed type from 'boolean' to 'bool'
 	Misconfiguration []string      `bson:"misconfiguration"` // misconfiguration details
+	ClientID         string        `bson:"client_id"`
+	ResourceOwnerID  string        `bson:"resource_owner_id"` // GCP project id or AWS account ID
+	Provider         string        `bson:"provider"`          // Cloud Provider
 }
 
 type RegoPolicy struct {

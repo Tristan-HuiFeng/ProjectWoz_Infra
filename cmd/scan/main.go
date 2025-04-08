@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,16 +23,18 @@ var (
 	regoRepo          opa2.RegoRepository
 	scanRepo          opa2.ScanRepository
 	configRepo        awscloud.ConfigRepository
-	resources         []awscloud.ResourceDiscovery
+	awsResources      []awscloud.ResourceDiscovery
 	client            database.Service
 	sqsClient         *sqs.Client
 	processingRoleCfg aws.Config
 )
 
 type Message struct {
-	ClientID    string `json:"client_id"`
-	JobID       string `json:"job_id"`
-	ClientEmail string `json:"client_email"`
+	ClientID        string `json:"client_id"`
+	JobID           string `json:"job_id"`
+	ClientEmail     string `json:"client_email"`
+	ResourceOwnerID string `json:"resource_owner_id"`
+	Provider        string `json:"provider"`
 }
 
 func init() {
@@ -90,7 +93,7 @@ func init() {
 	scanRepo = opa2.NewScanRepository(client)
 	configRepo = awscloud.NewConfigRepository(client)
 
-	resources = []awscloud.ResourceDiscovery{
+	awsResources = []awscloud.ResourceDiscovery{
 		&awscloud.S3Service{},
 	}
 
@@ -116,7 +119,15 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
 		}
 
-		err = opa2.RunScan(configRepo, scanRepo, regoRepo, id, resources, job.ClientEmail)
+		if job.Provider == "AWS" {
+			err = opa2.RunScan(configRepo, scanRepo, regoRepo, id, awsResources, job.ClientEmail, job.ClientID, job.ResourceOwnerID)
+		} else if job.Provider == "GCP" {
+			log.Info().Msg("WIP")
+		} else {
+			log.Warn().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Provider not supported")
+			return errors.New("provider not supported")
+		}
+
 		if err != nil {
 			log.Fatal().Msgf("Scan failed, %v", err)
 		}
