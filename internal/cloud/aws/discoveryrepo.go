@@ -17,7 +17,7 @@ import (
 var ErrJobNotFound = errors.New("discovery job not found")
 
 type DiscoveryRepository interface {
-	Create(job *cloud.DiscoveryJob, clientID string) (bson.ObjectID, error)
+	Create(job *cloud.DiscoveryJob, accountID string) (bson.ObjectID, error)
 	FindByID(id bson.ObjectID) (*cloud.DiscoveryJob, error)
 	UpdateResources(id bson.ObjectID, resources map[string][]string) error
 	UpdateJob(id bson.ObjectID, resourceName string, resourceData []string) error
