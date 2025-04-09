@@ -20,7 +20,7 @@ import (
 //go:embed scanResultEmailTemplate.tmpl
 var tmplContent string
 
-func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, resources []awscloud.ResourceDiscovery, clientEmail string, clientID string, resourceOwnerID string) error {
+func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, resources []awscloud.ResourceDiscovery, clientEmail string, clientID string) error {
 	log.Info().Str("Discovery ID", discoveryID.Hex()).Msg("Starting misconfig scan")
 
 	for _, resource := range resources {
@@ -68,7 +68,6 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 				Pass:             len(misconfigResult) == 0,
 				Misconfiguration: misconfigResult,
 				ClientID:         clientID,
-				ResourceOwnerID:  resourceOwnerID,
 				Provider:         "AWS",
 			}
 
@@ -94,7 +93,7 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 	return nil
 }
 
-func RunGCPScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, resources []gcpcloud.ResourceDiscovery, clientEmail string, clientID string, resourceOwnerID string) error {
+func RunGCPScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, resources []gcpcloud.ResourceDiscovery, clientEmail string, clientID string) error {
 	log.Info().Str("Discovery ID", discoveryID.Hex()).Msg("Starting misconfig scan")
 
 	for _, resource := range resources {
@@ -142,7 +141,6 @@ func RunGCPScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, r
 				Pass:             len(misconfigResult) == 0,
 				Misconfiguration: misconfigResult,
 				ClientID:         clientID,
-				ResourceOwnerID:  resourceOwnerID,
 				Provider:         "AWS",
 			}
 

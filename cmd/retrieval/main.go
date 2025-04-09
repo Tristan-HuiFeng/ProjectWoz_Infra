@@ -29,11 +29,10 @@ var (
 )
 
 type Message struct {
-	ClientID        string `json:"client_id"`
-	JobID           string `json:"job_id"`
-	ClientEmail     string `json:"client_email"`
-	ResourceOwnerID string `json:"resource_owner_id"`
-	Provider        string `json:"provider"`
+	ClientID    string `json:"client_id"`
+	JobID       string `json:"job_id"`
+	ClientEmail string `json:"client_email"`
+	Provider    string `json:"provider"`
 }
 
 func init() {
@@ -104,7 +103,7 @@ func awsHandler(job Message) error {
 		log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
 	}
 
-	err = awscloud.RunRetrieval(cfg, discoveryRepo, configRepo, id, resources, job.ClientEmail, job.ResourceOwnerID)
+	err = awscloud.RunRetrieval(cfg, discoveryRepo, configRepo, id, resources, job.ClientEmail, job.ClientID)
 	if err != nil {
 		log.Fatal().Msgf("Retrieval failed, %v", err)
 	}
