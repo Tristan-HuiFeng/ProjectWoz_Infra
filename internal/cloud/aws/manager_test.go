@@ -17,7 +17,7 @@ type MockDiscoveryRepository struct {
 	mock.Mock
 }
 
-func (m *MockDiscoveryRepository) Create(job *cloud.DiscoveryJob, accountID string) (bson.ObjectID, error) {
+func (m *MockDiscoveryRepository) Create(job *cloud.DiscoveryJob, clientID string, accountID string) (bson.ObjectID, error) {
 	args := m.Called(job)
 	return args.Get(0).(bson.ObjectID), args.Error(1)
 }
@@ -102,7 +102,7 @@ func TestRunDiscovery(t *testing.T) {
 	mockResource.On("Name").Return("s3")
 
 	// Call RunDiscovery
-	returnedJobID, err := awscloud.RunDiscovery(cfg, mockDiscoveryRepo, "123", []awscloud.ResourceDiscovery{mockResource})
+	returnedJobID, err := awscloud.RunDiscovery(cfg, mockDiscoveryRepo, "1", "123", []awscloud.ResourceDiscovery{mockResource})
 
 	// Assertions
 	assert.NoError(t, err)
@@ -139,7 +139,7 @@ func TestRetrival(t *testing.T) {
 	mockResource.On("Name").Return("s3")
 
 	// Call Retrival
-	err := awscloud.RunRetrieval(cfg, mockDiscoveryRepo, mockConfigRepo, jobID, []awscloud.ResourceDiscovery{mockResource}, "123")
+	err := awscloud.RunRetrieval(cfg, mockDiscoveryRepo, mockConfigRepo, jobID, "1", "123", []awscloud.ResourceDiscovery{mockResource})
 
 	// Assertions
 	assert.NoError(t, err)

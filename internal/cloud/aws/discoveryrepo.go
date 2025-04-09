@@ -17,7 +17,7 @@ import (
 var ErrJobNotFound = errors.New("discovery job not found")
 
 type DiscoveryRepository interface {
-	Create(job *cloud.DiscoveryJob, accountID string) (bson.ObjectID, error)
+	Create(job *cloud.DiscoveryJob, clientID string, accountID string) (bson.ObjectID, error)
 	FindByID(id bson.ObjectID) (*cloud.DiscoveryJob, error)
 	UpdateResources(id bson.ObjectID, resources map[string][]string) error
 	UpdateJob(id bson.ObjectID, resourceName string, resourceData []string) error
@@ -34,10 +34,11 @@ func NewDiscoveryRepository(db database.Service) DiscoveryRepository {
 	}
 }
 
-func (r *discoveryRepository) Create(job *cloud.DiscoveryJob, accountID string) (bson.ObjectID, error) {
+func (r *discoveryRepository) Create(job *cloud.DiscoveryJob, clientID string, accountID string) (bson.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	job.ID = bson.NewObjectID()
+	job.ClientID = clientID
 	job.AccountID = accountID
 	job.Provider = "AWS"
 

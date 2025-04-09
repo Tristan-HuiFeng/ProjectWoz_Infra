@@ -31,8 +31,9 @@ var (
 // }
 
 type Message struct {
-	AccountID   string `json:"account_id"`
 	JobID       string `json:"job_id"`
+	ClientID    string `json:"client_id"`
+	AccountID   string `json:"account_id"`
 	ClientEmail string `json:"client_email"`
 	Provider    string `json:"provider"`
 }
@@ -93,7 +94,7 @@ func init() {
 
 }
 
-func awsHandler(accountID string, clientEmail string) error {
+func awsHandler(clientID string, accountID string, clientEmail string) error {
 	log.Info().Str("account id", accountID).Msg("setting up discovery for aws client")
 	// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
 	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", accountID))
@@ -103,15 +104,16 @@ func awsHandler(accountID string, clientEmail string) error {
 	}
 
 	// Run discovery with the parsed event data
-	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, accountID, resources)
+	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, clientID, accountID, resources)
 	if err != nil {
 		log.Error().Err(err).Str("account id", accountID).Msg("Error running discovery")
 		return err
 	}
 
 	msg := Message{
-		AccountID:   accountID,
 		JobID:       jobID.Hex(),
+		ClientID:    clientID,
+		AccountID:   accountID,
 		ClientEmail: clientEmail,
 		Provider:    "AWS",
 	}
@@ -165,12 +167,13 @@ func handler(ctx context.Context) error {
 
 	log.Info().Msg("running interval discovery")
 
+	awsClientID := "1"
 	awsAccountID := "050752608470"
 	clientEmail := "user.ad.proj@gmail.com"
 	clientGCPProjectID := "the-other-450607-a4"
 	// clientGCPProjectID := "cs464-454011"
 
-	awsHandler(awsAccountID, clientEmail)
+	awsHandler(awsClientID, awsAccountID, clientEmail)
 
 	gcpHandler(clientGCPProjectID, clientEmail)
 

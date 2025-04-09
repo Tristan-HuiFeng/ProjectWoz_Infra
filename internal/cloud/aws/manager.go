@@ -31,13 +31,13 @@ func NewDiscoveryJob() *cloud.DiscoveryJob {
 	}
 }
 
-func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, accountID string, resources []ResourceDiscovery) (bson.ObjectID, error) {
+func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, clientID string, accountID string, resources []ResourceDiscovery) (bson.ObjectID, error) {
 	log.Info().Msg("Starting discovery process...")
 
 	job := NewDiscoveryJob()
 	job.AccountID = accountID
 
-	jobID, err := discoveryRepo.Create(job, accountID)
+	jobID, err := discoveryRepo.Create(job, clientID, accountID)
 	if err != nil {
 		log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to create discovery job")
 		return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
@@ -86,7 +86,7 @@ func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, accountID s
 	return jobID, nil
 }
 
-func RunRetrieval(cfg aws.Config, discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, resources []ResourceDiscovery, accountID string) error {
+func RunRetrieval(cfg aws.Config, discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, clientID string, accountID string, resources []ResourceDiscovery) error {
 	log.Info().Str("discoveryID", discoveryID.Hex()).Msg("Starting retrieval process...")
 
 	discoveryJob, err := discoveryRepo.FindByID(discoveryID)
@@ -120,6 +120,7 @@ func RunRetrieval(cfg aws.Config, discoveryRepo DiscoveryRepository, configRepo 
 		for resourceID, config := range configs {
 			resourceConfig := cloud.ResourceConfig{
 				DiscoveryJobID: discoveryID,
+				ClientID:       clientID,
 				AccountID:      accountID,
 				Provider:       "AWS",
 				ResourceType:   resourceName,
