@@ -30,7 +30,7 @@ var (
 )
 
 type Message struct {
-	ClientID    string `json:"client_id"`
+	AccountID   string `json:"account_id"`
 	JobID       string `json:"job_id"`
 	ClientEmail string `json:"client_email"`
 	Provider    string `json:"provider"`
@@ -119,7 +119,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		}
 
 		if job.Provider == "AWS" {
-			err = opa2.RunScan(configRepo, scanRepo, regoRepo, id, awsResources, job.ClientEmail, job.ClientID)
+			err = opa2.RunScan(configRepo, scanRepo, regoRepo, id, awsResources, job.ClientEmail, job.AccountID)
 		} else if job.Provider == "GCP" {
 			log.Info().Msg("WIP")
 		} else {

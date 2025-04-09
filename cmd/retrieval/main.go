@@ -29,7 +29,7 @@ var (
 )
 
 type Message struct {
-	ClientID    string `json:"client_id"`
+	AccountID   string `json:"account_id"`
 	JobID       string `json:"job_id"`
 	ClientEmail string `json:"client_email"`
 	Provider    string `json:"provider"`
@@ -93,7 +93,7 @@ func init() {
 }
 
 func awsHandler(job Message) error {
-	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", job.ClientID))
+	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", job.AccountID))
 	if err != nil {
 		log.Fatal().Msgf("unable to load SDK config, %v", err)
 	}
@@ -103,7 +103,7 @@ func awsHandler(job Message) error {
 		log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
 	}
 
-	err = awscloud.RunRetrieval(cfg, discoveryRepo, configRepo, id, resources, job.ClientEmail, job.ClientID)
+	err = awscloud.RunRetrieval(cfg, discoveryRepo, configRepo, id, resources, job.AccountID)
 	if err != nil {
 		log.Fatal().Msgf("Retrieval failed, %v", err)
 	}

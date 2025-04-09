@@ -31,7 +31,7 @@ var (
 // }
 
 type Message struct {
-	ClientID    string `json:"client_id"`
+	AccountID   string `json:"account_id"`
 	JobID       string `json:"job_id"`
 	ClientEmail string `json:"client_email"`
 	Provider    string `json:"provider"`
@@ -93,24 +93,24 @@ func init() {
 
 }
 
-func awsHandler(clientID string, clientEmail string) error {
-	log.Info().Str("client id", clientID).Msg("setting up discovery for aws client")
+func awsHandler(accountID string, clientEmail string) error {
+	log.Info().Str("account id", accountID).Msg("setting up discovery for aws client")
 	// config, err := awscloud.ClientRoleConfig("arn:aws:iam::050752608470:role/WozCrossAccountRole")
-	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", clientID))
+	cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", accountID))
 	if err != nil {
 		log.Fatal().Msgf("unable to load SDK config, %v", err)
 		return err
 	}
 
 	// Run discovery with the parsed event data
-	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, clientID, resources)
+	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, accountID, resources)
 	if err != nil {
-		log.Error().Err(err).Str("client id", clientID).Msg("Error running discovery")
+		log.Error().Err(err).Str("account id", accountID).Msg("Error running discovery")
 		return err
 	}
 
 	msg := Message{
-		ClientID:    clientID,
+		AccountID:   accountID,
 		JobID:       jobID.Hex(),
 		ClientEmail: clientEmail,
 		Provider:    "AWS",
@@ -128,7 +128,7 @@ func awsHandler(clientID string, clientEmail string) error {
 		return err
 	}
 
-	log.Info().Str("client id", clientID).Str("jobID", jobID.Hex()).Msg("discovery process completed for aws client")
+	log.Info().Str("account id", accountID).Str("jobID", jobID.Hex()).Msg("discovery process completed for aws client")
 
 	return nil
 }
@@ -165,12 +165,12 @@ func handler(ctx context.Context) error {
 
 	log.Info().Msg("running interval discovery")
 
-	awsClientID := "050752608470"
+	awsAccountID := "050752608470"
 	clientEmail := "user.ad.proj@gmail.com"
 	clientGCPProjectID := "the-other-450607-a4"
 	// clientGCPProjectID := "cs464-454011"
 
-	awsHandler(awsClientID, clientEmail)
+	awsHandler(awsAccountID, clientEmail)
 
 	gcpHandler(clientGCPProjectID, clientEmail)
 
