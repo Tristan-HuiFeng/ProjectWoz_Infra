@@ -17,7 +17,7 @@ type MockDiscoveryRepository struct {
 	mock.Mock
 }
 
-func (m *MockDiscoveryRepository) Create(job *cloud.DiscoveryJob, clientID string, accountID string) (bson.ObjectID, error) {
+func (m *MockDiscoveryRepository) Create(job *cloud.DiscoveryJob) (bson.ObjectID, error) {
 	args := m.Called(job)
 	return args.Get(0).(bson.ObjectID), args.Error(1)
 }

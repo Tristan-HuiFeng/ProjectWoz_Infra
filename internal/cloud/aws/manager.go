@@ -28,6 +28,7 @@ func NewDiscoveryJob() *cloud.DiscoveryJob {
 		Status:    InProgressStatus,
 		Resources: make(map[string][]string),
 		CreatedAt: time.Now().Unix(),
+		Provider:  "AWS",
 	}
 }
 
@@ -35,29 +36,30 @@ func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, clientID st
 	log.Info().Msg("Starting discovery process...")
 
 	job := NewDiscoveryJob()
+	job.ClientID = clientID
 	job.AccountID = accountID
 
-	jobID, err := discoveryRepo.Create(job, clientID, accountID)
+	jobID, err := discoveryRepo.Create(job)
 	if err != nil {
-		log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to create discovery job")
+		log.Error().Err(err).Str("client id", clientID).Str("account id", accountID).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to create discovery job")
 		return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 	}
-	log.Info().Str("jobID", jobID.Hex()).Msg("Discovery job created")
+	log.Info().Str("client id", clientID).Str("account id", accountID).Str("jobID", jobID.Hex()).Msg("Discovery job created")
 
 	for _, resource := range resources {
 		resourceName := resource.Name()
-		log.Info().Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Starting resource discovery")
+		log.Info().Str("client id", clientID).Str("account id", accountID).Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Starting resource discovery")
 
 		resourceIDs, err := resource.Discover(cfg)
 
 		if err != nil {
-			log.Error().Err(err).Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to discover resources")
+			log.Error().Err(err).Str("client id", clientID).Str("account id", accountID).Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to discover resources")
 			return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 		}
 
 		err = discoveryRepo.UpdateJob(jobID, resourceName, resourceIDs)
 		if err != nil {
-			log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to update job with resources")
+			log.Error().Err(err).Str("client id", clientID).Str("account id", accountID).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to update job with resources")
 			return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 		}
 
@@ -78,11 +80,11 @@ func RunDiscovery(cfg aws.Config, discoveryRepo DiscoveryRepository, clientID st
 
 	err = discoveryRepo.UpdateStatus(jobID, CompletedStatus)
 	if err != nil {
-		log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to update job status to complete")
+		log.Error().Err(err).Str("client id", clientID).Str("account id", accountID).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to update job status to complete")
 		return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 	}
 
-	log.Info().Str("jobID", jobID.Hex()).Msg("Discovery process completed successfully")
+	log.Info().Str("client id", clientID).Str("account id", accountID).Str("jobID", jobID.Hex()).Msg("Discovery process completed successfully")
 	return jobID, nil
 }
 

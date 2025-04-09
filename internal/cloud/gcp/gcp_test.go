@@ -27,7 +27,7 @@ func TestGcsService(t *testing.T) {
 		ServiceAccount: serviceAccount,
 	}
 
-	buckets, err := gcsService.Discover()
+	buckets, err := gcsService.Discover("the-other-450607-a4")
 	if err != nil {
 		t.Errorf("Error discovering GCS buckets: %v", err)
 	}

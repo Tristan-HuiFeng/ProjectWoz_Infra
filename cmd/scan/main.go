@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
+	gcpcloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/gcp"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/opa2"
 	"github.com/aws/aws-lambda-go/events"
@@ -20,10 +21,15 @@ import (
 )
 
 var (
-	regoRepo          opa2.RegoRepository
-	scanRepo          opa2.ScanRepository
-	configRepo        awscloud.ConfigRepository
-	awsResources      []awscloud.ResourceDiscovery
+	regoRepo opa2.RegoRepository
+	scanRepo opa2.ScanRepository
+
+	awsConfigRepo awscloud.ConfigRepository
+	awsResources  []awscloud.ResourceDiscovery
+
+	gcpConfigRepo gcpcloud.ConfigRepository
+	gcpResources  []gcpcloud.ResourceDiscovery
+
 	client            database.Service
 	sqsClient         *sqs.Client
 	processingRoleCfg aws.Config
@@ -91,10 +97,15 @@ func init() {
 
 	regoRepo = opa2.NewRegoRepository(client)
 	scanRepo = opa2.NewScanRepository(client)
-	configRepo = awscloud.NewConfigRepository(client)
+	awsConfigRepo = awscloud.NewConfigRepository(client)
+	gcpConfigRepo = gcpcloud.NewConfigRepository(client)
 
 	awsResources = []awscloud.ResourceDiscovery{
 		&awscloud.S3Service{},
+	}
+
+	gcpResources = []gcpcloud.ResourceDiscovery{
+		&gcpcloud.GcsService{},
 	}
 
 	sqsClient = sqs.NewFromConfig(processingRoleCfg)
@@ -120,9 +131,9 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		}
 
 		if job.Provider == "AWS" {
-			err = opa2.RunScan(configRepo, scanRepo, regoRepo, id, job.ClientID, job.AccountID, job.ClientEmail, "AWS", awsResources)
+			err = opa2.RunScan(awsConfigRepo, scanRepo, regoRepo, id, job.ClientID, job.AccountID, job.ClientEmail, "AWS", awsResources)
 		} else if job.Provider == "GCP" {
-			log.Info().Msg("WIP")
+			err = opa2.RunGCPScan(awsConfigRepo, scanRepo, regoRepo, id, job.ClientID, job.AccountID, job.ClientEmail, "GCP", gcpResources)
 		} else {
 			log.Warn().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Provider not supported")
 			return errors.New("provider not supported")

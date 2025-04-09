@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
+	gcpcloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/gcp"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,9 +21,14 @@ import (
 )
 
 var (
-	discoveryRepo     awscloud.DiscoveryRepository
-	configRepo        awscloud.ConfigRepository
-	resources         []awscloud.ResourceDiscovery
+	awsDiscoveryRepo awscloud.DiscoveryRepository
+	awsConfigRepo    awscloud.ConfigRepository
+	awsResources     []awscloud.ResourceDiscovery
+
+	gcpDiscoveryRepo gcpcloud.DiscoveryRepository
+	gcpConfigRepo    gcpcloud.ConfigRepository
+	gcpResources     []gcpcloud.ResourceDiscovery
+
 	client            database.Service
 	sqsClient         *sqs.Client
 	processingRoleCfg aws.Config
@@ -82,11 +88,18 @@ func init() {
 	}
 	os.Setenv("SCAN_QUEUE_URL", SCAN_QUEUE_URL)
 
-	discoveryRepo = awscloud.NewDiscoveryRepository(client)
-	configRepo = awscloud.NewConfigRepository(client)
+	awsDiscoveryRepo = awscloud.NewDiscoveryRepository(client)
+	awsConfigRepo = awscloud.NewConfigRepository(client)
 
-	resources = []awscloud.ResourceDiscovery{
+	awsResources = []awscloud.ResourceDiscovery{
 		&awscloud.S3Service{},
+	}
+
+	gcpDiscoveryRepo = gcpcloud.NewDiscoveryRepository(client)
+	gcpConfigRepo = gcpcloud.NewConfigRepository(client)
+
+	gcpResources = []gcpcloud.ResourceDiscovery{
+		&gcpcloud.GcsService{},
 	}
 
 	sqsClient = sqs.NewFromConfig(processingRoleCfg)
@@ -104,9 +117,29 @@ func awsHandler(job Message) error {
 		log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
 	}
 
-	err = awscloud.RunRetrieval(cfg, discoveryRepo, configRepo, id, job.ClientID, job.AccountID, resources)
+	err = awscloud.RunRetrieval(cfg, awsDiscoveryRepo, awsConfigRepo, id, job.ClientID, job.AccountID, awsResources)
 	if err != nil {
-		log.Fatal().Msgf("Retrieval failed, %v", err)
+		log.Fatal().Msgf("Retrieval failed for aws, %v", err)
+	}
+
+	return nil
+}
+
+func gcpHandler(job Message) error {
+	// cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", job.AccountID))
+	// if err != nil {
+	// 	log.Fatal().Msgf("unable to load SDK config, %v", err)
+	// }
+
+	id, err := bson.ObjectIDFromHex(job.JobID)
+	if err != nil {
+		log.Fatal().Msgf("unable to convert job id to bson.ObjectID, %v", err)
+	}
+
+	//err = gcpcloud.RunRetrieval(discoveryRepo, configRepo, id, job.ClientID, job.AccountID, resources)
+	err = gcpcloud.RunRetrival(gcpDiscoveryRepo, gcpConfigRepo, id, job.ClientID, job.AccountID, gcpResources)
+	if err != nil {
+		log.Fatal().Msgf("Retrieval failed for gcp, %v", err)
 	}
 
 	return nil
@@ -132,7 +165,11 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 				return errors.New("error running AWS Handler")
 			}
 		} else if job.Provider == "GCP" {
-			log.Info().Msg("WIP")
+			err = gcpHandler(job)
+			if err != nil {
+				log.Fatal().Err(err).Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("AWS Handler Error")
+				return errors.New("error running GCP Handler")
+			}
 		} else {
 			log.Warn().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Provider not supported")
 			return errors.New("provider not supported")

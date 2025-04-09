@@ -9,6 +9,7 @@ import (
 
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud"
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
+	gcpcloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/gcp"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/notify"
 
 	"github.com/open-policy-agent/opa/v1/rego"
@@ -93,78 +94,79 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 	return nil
 }
 
-// func RunGCPScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, resources []gcpcloud.ResourceDiscovery, clientEmail string, accountID string) error {
-// 	log.Info().Str("Discovery ID", discoveryID.Hex()).Msg("Starting misconfig scan")
+func RunGCPScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, clientID string, accountID string, clientEmail string, provider string, resources []gcpcloud.ResourceDiscovery) error {
+	log.Info().Str("Discovery ID", discoveryID.Hex()).Msg("Starting misconfig scan")
 
-// 	for _, resource := range resources {
-// 		log.Info().Str("Discovery ID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Running misconfig scan")
+	for _, resource := range resources {
+		log.Info().Str("Discovery ID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Running misconfig scan")
 
-// 		configs, err := configRepo.FindByTypeAndJobID(resource.Name(), discoveryID)
-// 		if err != nil {
-// 			log.Warn().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to find config")
-// 			continue
-// 		}
+		configs, err := configRepo.FindByTypeAndJobID(resource.Name(), discoveryID)
+		if err != nil {
+			log.Warn().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to find config")
+			continue
+		}
 
-// 		// policyPaths, query, err := setupScan(resource.Name())
-// 		// if err != nil {
-// 		// 	log.Warn().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to get policy")
-// 		// 	continue
-// 		// }
+		// policyPaths, query, err := setupScan(resource.Name())
+		// if err != nil {
+		// 	log.Warn().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to get policy")
+		// 	continue
+		// }
 
-// 		regoPolicy, err := regoRepo.FindByResourceType(resource.Name())
-// 		if err != nil {
-// 			log.Warn().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to get rego policy")
-// 			continue
-// 		}
+		regoPolicy, err := regoRepo.FindByResourceType(resource.Name())
+		if err != nil {
+			log.Warn().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to get rego policy")
+			continue
+		}
 
-// 		log.Info().Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Str("Rego Query", regoPolicy.Query).Str("Rego Policy", regoPolicy.Rego).Msg("rego debug")
+		log.Info().Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Str("Rego Query", regoPolicy.Query).Str("Rego Policy", regoPolicy.Rego).Msg("rego debug")
 
-// 		var scanResults []interface{}
-// 		var filteredResults []ScanResult
+		var scanResults []interface{}
+		var filteredResults []ScanResult
 
-// 		for _, config := range configs {
+		for _, config := range configs {
 
-// 			log.Info().Str("function", "EvaluateConfig").Str("resource name", config.ResourceID).Msg("Running evaluation for specific resource")
+			log.Info().Str("function", "EvaluateConfig").Str("resource name", config.ResourceID).Msg("Running evaluation for specific resource")
 
-// 			misconfigResult, err := EvaluateConfig(regoPolicy, config.Config)
-// 			status := "completed"
-// 			if err != nil {
-// 				log.Error().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to get scan result")
-// 				status = "error"
-// 			}
+			misconfigResult, err := EvaluateConfig(regoPolicy, config.Config)
+			status := "completed"
+			if err != nil {
+				log.Error().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to get scan result")
+				status = "error"
+			}
 
-// 			scanResult := ScanResult{
-// 				DiscoveryJobID:   discoveryID,
-// 				ResourceType:     resource.Name(),
-// 				ResourceID:       config.ResourceID,
-// 				Status:           status,
-// 				Pass:             len(misconfigResult) == 0,
-// 				Misconfiguration: misconfigResult,
-// 				AccountID:        accountID,
-// 				Provider:         "AWS",
-// 			}
+			scanResult := ScanResult{
+				DiscoveryJobID:   discoveryID,
+				ResourceType:     resource.Name(),
+				ResourceID:       config.ResourceID,
+				Status:           status,
+				Pass:             len(misconfigResult) == 0,
+				Misconfiguration: misconfigResult,
+				ClientID:         clientID,
+				AccountID:        accountID,
+				Provider:         provider,
+			}
 
-// 			scanResults = append(scanResults, scanResult)
+			scanResults = append(scanResults, scanResult)
 
-// 			if len(misconfigResult) != 0 {
-// 				filteredResults = append(filteredResults, scanResult)
-// 			}
+			if len(misconfigResult) != 0 {
+				filteredResults = append(filteredResults, scanResult)
+			}
 
-// 		}
+		}
 
-// 		result, err := scanRepo.InsertMany(scanResults)
+		result, err := scanRepo.InsertMany(scanResults)
 
-// 		if err != nil {
-// 			log.Error().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to insert scan result")
-// 			return fmt.Errorf("RunScan: %w", err)
-// 		}
-// 		log.Info().Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Int("inserted", len(result)).Msg("Scan result inserted successfully")
+		if err != nil {
+			log.Error().Err(err).Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Msg("Failed to insert scan result")
+			return fmt.Errorf("RunScan: %w", err)
+		}
+		log.Info().Str("discoveryID", discoveryID.Hex()).Str("resource", resource.Name()).Int("inserted", len(result)).Msg("Scan result inserted successfully")
 
-// 		sendScanResultEmail(filteredResults, clientEmail)
-// 	}
+		sendScanResultEmail(filteredResults, clientEmail)
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 func sendScanResultEmail(misconfigs []ScanResult, clientEmail string) {
 

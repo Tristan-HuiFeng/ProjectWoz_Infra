@@ -7,21 +7,21 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"cloud.google.com/go/storage"
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
+	gcpcloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/gcp"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/rs/zerolog/log"
-	"google.golang.org/api/iterator"
 )
 
 var (
-	discoveryRepo awscloud.DiscoveryRepository
-	resources     []awscloud.ResourceDiscovery
-	sqsClient     *sqs.Client
+	awsDiscoveryRepo awscloud.DiscoveryRepository
+	gcpDiscoveryRepo gcpcloud.DiscoveryRepository
+	awsResources     []awscloud.ResourceDiscovery
+	gcpResources     []gcpcloud.ResourceDiscovery
+	sqsClient        *sqs.Client
 	// processingRoleCfg aws.Config
 	// client        database.Service
 )
@@ -84,10 +84,15 @@ func init() {
 	}
 	os.Setenv("RETRIEVAL_QUEUE_URL", RETRIEVAL_QUEUE_URL)
 
-	discoveryRepo = awscloud.NewDiscoveryRepository(client)
+	awsDiscoveryRepo = awscloud.NewDiscoveryRepository(client)
+	gcpDiscoveryRepo = gcpcloud.NewDiscoveryRepository(client)
 
-	resources = []awscloud.ResourceDiscovery{
+	awsResources = []awscloud.ResourceDiscovery{
 		&awscloud.S3Service{},
+	}
+
+	gcpResources = []gcpcloud.ResourceDiscovery{
+		&gcpcloud.GcsService{},
 	}
 
 	sqsClient = sqs.NewFromConfig(processingRoleCfg)
@@ -104,7 +109,7 @@ func awsHandler(clientID string, accountID string, clientEmail string) error {
 	}
 
 	// Run discovery with the parsed event data
-	jobID, err := awscloud.RunDiscovery(cfg, discoveryRepo, clientID, accountID, resources)
+	jobID, err := awscloud.RunDiscovery(cfg, awsDiscoveryRepo, clientID, accountID, awsResources)
 	if err != nil {
 		log.Error().Err(err).Str("account id", accountID).Msg("Error running discovery")
 		return err
@@ -135,31 +140,64 @@ func awsHandler(clientID string, accountID string, clientEmail string) error {
 	return nil
 }
 
-func gcpHandler(clientGCPProjectID string, clientEmail string) error {
-	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
+func gcpHandler(clientID string, projectID, clientEmail string) error {
+
+	log.Info().Str("project id", projectID).Msg("setting up discovery for gcp client")
+
+	jobID, err := gcpcloud.RunDiscovery(gcpDiscoveryRepo, clientID, projectID, gcpResources)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to create client for gcp storage")
+		log.Error().Err(err).Str("project id", projectID).Msg("Error running discovery")
 		return err
 	}
-	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
-	defer cancel()
+	log.Info().Str("project id", projectID).Str("jobID", jobID.Hex()).Msg("discovery process completed for gcp client")
 
-	it := client.Buckets(ctx, clientGCPProjectID)
-	for {
-		battrs, err := it.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed while iterating gcp buckets")
-			return err
-		}
-		log.Info().Msgf("Bucket: %v\n", battrs.Name)
+	msg := Message{
+		JobID:       jobID.Hex(),
+		ClientID:    clientID,
+		AccountID:   projectID,
+		ClientEmail: clientEmail,
+		Provider:    "AWS",
 	}
+
+	_, err = json.Marshal(msg)
+	if err != nil {
+		log.Fatal().Msgf("failed to marshal message into JSON, %v", err)
+		return err
+	}
+
+	// err = awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
+	// if err != nil {
+	// 	log.Fatal().Str("jobID", jobID.Hex()).Msg("failed to send message to retrieval queue")
+	// 	return err
+	// }
+
 	return nil
+
+	// ctx := context.Background()
+	// client, err := storage.NewClient(ctx)
+	// if err != nil {
+	// 	log.Fatal().Err(err).Msg("failed to create client for gcp storage")
+	// 	return err
+	// }
+	// defer client.Close()
+
+	// ctx, cancel := context.WithTimeout(ctx, time.Second*30)
+	// defer cancel()
+
+	// it := client.Buckets(ctx, clientGCPProjectID)
+	// for {
+	// 	battrs, err := it.Next()
+	// 	if err == iterator.Done {
+	// 		break
+	// 	}
+	// 	if err != nil {
+	// 		log.Fatal().Err(err).Msg("failed while iterating gcp buckets")
+	// 		return err
+	// 	}
+	// 	log.Info().Msgf("Bucket: %v\n", battrs.Name)
+	// }
+	// return nil
 }
 
 func handler(ctx context.Context) error {
@@ -170,12 +208,13 @@ func handler(ctx context.Context) error {
 	// awsClientID := "1"
 	// awsAccountID := "050752608470"
 	clientEmail := "user.ad.proj@gmail.com"
+	gcpClientID := "1"
 	clientGCPProjectID := "the-other-450607-a4"
 	// clientGCPProjectID := "cs464-454011"
 
 	// awsHandler(awsClientID, awsAccountID, clientEmail)
 
-	gcpHandler(clientGCPProjectID, clientEmail)
+	gcpHandler(gcpClientID, clientGCPProjectID, clientEmail)
 
 	log.Info().Msg("interval discovery process completed")
 

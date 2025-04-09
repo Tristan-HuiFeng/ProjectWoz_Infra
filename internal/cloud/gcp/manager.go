@@ -23,8 +23,8 @@ const (
 )
 
 type ResourceDiscovery interface {
-	Discover() ([]string, error)                                                    // Discover resources for a specific GCP service
-	RetrieveConfig(bucketNames []string) (map[string]map[string]interface{}, error) // Retrieve resource configuration
+	Discover(projectID string) ([]string, error)                                    // Discover resources for a specific GCP service
+	RetrieveConfig(resourceIDs []string) (map[string]map[string]interface{}, error) // Retrieve resource configuration
 	Name() string
 }
 
@@ -33,35 +33,38 @@ func NewDiscoveryJob() *cloud.DiscoveryJob {
 		Status:    InProgressStatus,
 		Resources: make(map[string][]string),
 		CreatedAt: time.Now().Unix(),
+		Provider:  "GCP",
 	}
 }
 
-func RunDiscovery(discoveryRepo DiscoveryRepository, resources []ResourceDiscovery) (bson.ObjectID, error) {
-	log.Info().Msg("Starting discovery process...")
+func RunDiscovery(discoveryRepo DiscoveryRepository, clientID string, accountID string, resources []ResourceDiscovery) (bson.ObjectID, error) {
+	log.Info().Str("client id", clientID).Str("account id", accountID).Msg("Starting discovery process for gcp...")
 
 	job := NewDiscoveryJob()
+	job.ClientID = clientID
+	job.AccountID = accountID
 
 	jobID, err := discoveryRepo.Create(job)
 	if err != nil {
-		log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to create discovery job")
+		log.Error().Err(err).Str("client id", clientID).Str("account id", accountID).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to create discovery job")
 		return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 	}
-	log.Info().Str("jobID", jobID.Hex()).Msg("Discovery job created")
+	log.Info().Str("client id", clientID).Str("account id", accountID).Str("jobID", jobID.Hex()).Msg("Discovery job created")
 
 	for _, resource := range resources {
 		resourceName := resource.Name()
-		log.Info().Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Starting resource discovery")
+		log.Info().Str("client id", clientID).Str("account id", accountID).Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Starting resource discovery")
 
-		resourceIDs, err := resource.Discover()
+		resourceIDs, err := resource.Discover(accountID)
 
 		if err != nil {
-			log.Error().Err(err).Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to discover resources")
+			log.Error().Err(err).Str("client id", clientID).Str("account id", accountID).Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to discover resources")
 			return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 		}
 
 		err = discoveryRepo.UpdateJob(jobID, resourceName, resourceIDs)
 		if err != nil {
-			log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to update job with resources")
+			log.Error().Err(err).Str("client id", clientID).Str("account id", accountID).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Str("resource", resourceName).Msg("Failed to update job with resources")
 			return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 		}
 
@@ -69,15 +72,15 @@ func RunDiscovery(discoveryRepo DiscoveryRepository, resources []ResourceDiscove
 
 	err = discoveryRepo.UpdateStatus(jobID, CompletedStatus)
 	if err != nil {
-		log.Error().Err(err).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to update job status to complete")
+		log.Error().Err(err).Str("client id", clientID).Str("account id", accountID).Str("function", "RunDiscovery").Str("jobID", jobID.Hex()).Msg("Failed to update job status to complete")
 		return bson.NilObjectID, fmt.Errorf("RunDiscovery: %w", err)
 	}
 
-	log.Info().Str("jobID", jobID.Hex()).Msg("Discovery process completed successfully")
+	log.Info().Str("client id", clientID).Str("account id", accountID).Str("jobID", jobID.Hex()).Msg("Discovery process completed successfully")
 	return jobID, nil
 }
 
-func RunRetrival(discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, resources []ResourceDiscovery) error {
+func RunRetrival(discoveryRepo DiscoveryRepository, configRepo ConfigRepository, discoveryID bson.ObjectID, clientID string, accountID string, resources []ResourceDiscovery) error {
 	log.Info().Str("discoveryID", discoveryID.Hex()).Msg("Starting retrieval process...")
 
 	discoveryJob, err := discoveryRepo.FindByID(discoveryID)
@@ -111,6 +114,9 @@ func RunRetrival(discoveryRepo DiscoveryRepository, configRepo ConfigRepository,
 		for resourceID, config := range configs {
 			resourceConfig := cloud.ResourceConfig{
 				DiscoveryJobID: discoveryIDbson,
+				ClientID:       clientID,
+				AccountID:      accountID,
+				Provider:       "AWS",
 				ResourceType:   resourceName,
 				ResourceID:     resourceID,
 				Config:         config,
