@@ -186,8 +186,11 @@ resource "aws_lambda_function" "retrieval" {
       MONGO_DB_STRING_PARAM = "/cs464/mongo_db_string"
       PROCESSING_ROLE = "/cs464/cross_account_role"
       SCAN_QUEUE_PARAM = "/cs464/scan_queue_url"
+      GOOGLE_APPLICATION_CREDENTIALS = "clientLibraryConfig-awswoz.json"
+      GOOGLE_CLOUD_PROJECT = "cs464-454011"
     }
   }
+
   timeout          = 45
   source_code_hash = data.archive_file.retrieval_lambda_zip.output_base64sha256
 
