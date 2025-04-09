@@ -81,7 +81,7 @@ func (s *GcsService) RetrieveConfig(bucketNames []string) (map[string]map[string
 		// 	continue // Skip to the next bucket
 		// }
 
-		configs[bucket]["bucket_policy"] = policy
+		configs[bucket]["bucket_policy"] = policy.InternalProto
 
 		metadata, err := bk.Attrs(ctx)
 		if err != nil {
