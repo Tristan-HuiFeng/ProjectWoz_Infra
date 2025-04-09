@@ -139,7 +139,7 @@ func TestRetrival(t *testing.T) {
 	mockResource.On("Name").Return("s3")
 
 	// Call Retrival
-	err := awscloud.RunRetrieval(cfg, mockDiscoveryRepo, mockConfigRepo, jobID, []awscloud.ResourceDiscovery{mockResource}, "123", "123")
+	err := awscloud.RunRetrieval(cfg, mockDiscoveryRepo, mockConfigRepo, jobID, []awscloud.ResourceDiscovery{mockResource}, "123")
 
 	// Assertions
 	assert.NoError(t, err)
