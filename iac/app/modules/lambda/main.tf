@@ -164,7 +164,7 @@ resource "aws_lambda_alias" "discovery_alias" {
 
 data "archive_file" "retrieval_lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../../../../bin/retrieval/bootstrap"
+  source_dir = "${path.module}/../../../../bin/retrieval/bootstrap"
   output_path = "${path.module}/../../../../bin/retrieval/bootstrap.zip"
 }
 
