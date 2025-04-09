@@ -126,10 +126,6 @@ func awsHandler(job Message) error {
 }
 
 func gcpHandler(job Message) error {
-	// cfg, err := awscloud.ClientRoleConfig(fmt.Sprintf("arn:aws:iam::%s:role/WozCrossAccountRole", job.AccountID))
-	// if err != nil {
-	// 	log.Fatal().Msgf("unable to load SDK config, %v", err)
-	// }
 
 	id, err := bson.ObjectIDFromHex(job.JobID)
 	if err != nil {
@@ -159,14 +155,14 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		}
 
 		if job.Provider == "AWS" {
-			log.Info().Str("account_id", job.AccountID).Str("messageID", message.MessageId).Msg("retieving config for aws message")
+			log.Info().Str("account_id", job.AccountID).Str("messageID", message.MessageId).Msg("retrieving config for aws message")
 			err = awsHandler(job)
 			if err != nil {
 				log.Fatal().Err(err).Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("AWS Handler Error")
 				return errors.New("error running AWS Handler")
 			}
 		} else if job.Provider == "GCP" {
-			log.Info().Str("account_id", job.AccountID).Str("messageID", message.MessageId).Msg("retieving config for gcp message")
+			log.Info().Str("account_id", job.AccountID).Str("messageID", message.MessageId).Msg("retrieving config for gcp message")
 			err = gcpHandler(job)
 			if err != nil {
 				log.Fatal().Err(err).Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("AWS Handler Error")

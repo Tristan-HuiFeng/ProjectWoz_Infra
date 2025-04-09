@@ -157,7 +157,7 @@ func gcpHandler(clientID string, projectID, clientEmail string) error {
 		ClientID:    clientID,
 		AccountID:   projectID,
 		ClientEmail: clientEmail,
-		Provider:    "AWS",
+		Provider:    "GCP",
 	}
 
 	messageBody, err := json.Marshal(msg)
