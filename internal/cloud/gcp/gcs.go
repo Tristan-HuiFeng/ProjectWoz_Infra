@@ -81,7 +81,7 @@ func (s *GcsService) RetrieveConfig(bucketNames []string) (map[string]map[string
 		// 	continue // Skip to the next bucket
 		// }
 
-		configs[bucket]["bucket_policy"] = policy.InternalProto
+		configs[bucket]["bucket_policy"] = policy.InternalProto.Bindings
 
 		metadata, err := bk.Attrs(ctx)
 		if err != nil {

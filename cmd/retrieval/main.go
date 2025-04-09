@@ -178,7 +178,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			log.Fatal().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Failed to send message to scan queue")
 		}
 
-		log.Info().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Restrieval process completed for message")
+		log.Info().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Retrieval process completed for message")
 	}
 
 	return nil
