@@ -159,12 +159,14 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		}
 
 		if job.Provider == "AWS" {
+			log.Info().Str("account_id", job.AccountID).Str("messageID", message.MessageId).Msg("retieving config for aws message")
 			err = awsHandler(job)
 			if err != nil {
 				log.Fatal().Err(err).Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("AWS Handler Error")
 				return errors.New("error running AWS Handler")
 			}
 		} else if job.Provider == "GCP" {
+			log.Info().Str("account_id", job.AccountID).Str("messageID", message.MessageId).Msg("retieving config for gcp message")
 			err = gcpHandler(job)
 			if err != nil {
 				log.Fatal().Err(err).Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("AWS Handler Error")
