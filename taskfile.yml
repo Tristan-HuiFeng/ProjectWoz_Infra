@@ -26,10 +26,10 @@ tasks:
       - for:
           var: LAMBDAS
         cmd: |
-          if [ "{{.ITEM}}" == "discovery" ]; then
-            cp clientLibraryConfig-awswoz.json bin/discovery/
-            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswoz.json
-            cat bin/discovery/clientLibraryConfig-awswoz.json
+          if [ "{{.ITEM}}" == "discovery" ] || [ "{{.ITEM}}" == "retrieval" ]; then
+            cp clientLibraryConfig-awswoz.json bin/{{.ITEM}}/
+            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/{{.ITEM}}/clientLibraryConfig-awswoz.json
+            cat bin/{{.ITEM}}/clientLibraryConfig-awswoz.json
           else
             zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
           fi
@@ -57,10 +57,10 @@ tasks:
       - for:
           var: LAMBDAS
         cmd: |
-          if [ "{{.ITEM}}" == "discovery" ]; then
-            cp clientLibraryConfig-awswoz-dev.json bin/discovery/clientLibraryConfig-awswoz.json
-            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/discovery/clientLibraryConfig-awswoz.json
-            cat bin/discovery/clientLibraryConfig-awswoz.json
+          if [ "{{.ITEM}}" == "discovery" ] || [ "{{.ITEM}}" == "retrieval" ]; then
+            cp clientLibraryConfig-awswoz-dev.json bin/{{.ITEM}}/clientLibraryConfig-awswoz.json
+            zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap bin/{{.ITEM}}/clientLibraryConfig-awswoz.json
+            cat bin/{{.ITEM}}/clientLibraryConfig-awswoz.json
           else
             zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
           fi
