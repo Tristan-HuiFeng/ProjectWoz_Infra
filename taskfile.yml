@@ -64,6 +64,9 @@ tasks:
           else
             zip -j bin/{{.ITEM}}/bootstrap.zip bin/{{.ITEM}}/bootstrap
           fi
+
+          ls -la bin/discovery
+          ls -la bin/retrieval
   
 
   # upload:
