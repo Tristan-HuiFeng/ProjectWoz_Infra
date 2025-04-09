@@ -160,17 +160,17 @@ func gcpHandler(clientID string, projectID, clientEmail string) error {
 		Provider:    "AWS",
 	}
 
-	_, err = json.Marshal(msg)
+	messageBody, err := json.Marshal(msg)
 	if err != nil {
 		log.Fatal().Msgf("failed to marshal message into JSON, %v", err)
 		return err
 	}
 
-	// err = awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
-	// if err != nil {
-	// 	log.Fatal().Str("jobID", jobID.Hex()).Msg("failed to send message to retrieval queue")
-	// 	return err
-	// }
+	err = awscloud.SendSQSMessage(string(messageBody), sqsClient, os.Getenv("RETRIEVAL_QUEUE_URL"))
+	if err != nil {
+		log.Fatal().Str("jobID", jobID.Hex()).Msg("failed to send message to retrieval queue")
+		return err
+	}
 
 	return nil
 
