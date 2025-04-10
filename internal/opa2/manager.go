@@ -221,7 +221,7 @@ func EvaluateConfig(regoPolicy *RegoPolicy, config map[string]interface{}) ([]st
 
 	rq, err := rego.New(
 		rego.Query(regoPolicy.Query),
-		rego.Module("s3.rego", regoPolicy.Rego),
+		rego.Module("rego", regoPolicy.Rego),
 	).PrepareForEval(ctx)
 
 	if err != nil {
