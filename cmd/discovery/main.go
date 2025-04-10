@@ -11,6 +11,7 @@ import (
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
 	gcpcloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/gcp"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/rs/zerolog/log"
@@ -213,11 +214,13 @@ func handler(ctx context.Context, event json.RawMessage) error {
 
 	log.Info().Msg("running interval discovery")
 
-	var invoke Invoke
+	var invoke events.LambdaFunctionURLRequest
 	if err := json.Unmarshal(event, &invoke); err != nil {
 		log.Printf("Failed to unmarshal event: %v", err)
 		return err
 	}
+
+	fmt.Println(invoke)
 
 	log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID).Msg("invoke debug")
 
