@@ -218,7 +218,8 @@ func handler(ctx context.Context, event json.RawMessage) error {
 		log.Printf("Failed to unmarshal event: %v", err)
 		return err
 	}
-	log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID)
+
+	log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID).Msg("invoke debug")
 
 	if invoke.InvokeType == "manual" {
 
