@@ -205,14 +205,14 @@ func handler(ctx context.Context) error {
 
 	log.Info().Msg("running interval discovery")
 
-	// awsClientID := "1"
-	// awsAccountID := "050752608470"
+	awsClientID := "1"
+	awsAccountID := "050752608470"
 	clientEmail := "user.ad.proj@gmail.com"
 	gcpClientID := "1"
 	clientGCPProjectID := "the-other-450607-a4"
 	// clientGCPProjectID := "cs464-454011"
 
-	// awsHandler(awsClientID, awsAccountID, clientEmail)
+	awsHandler(awsClientID, awsAccountID, clientEmail)
 
 	gcpHandler(gcpClientID, clientGCPProjectID, clientEmail)
 
