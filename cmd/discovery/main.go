@@ -214,20 +214,28 @@ func handler(ctx context.Context, event json.RawMessage) error {
 
 	log.Info().Msg("running interval discovery")
 
-	var invoke events.LambdaFunctionURLRequest
-	if err := json.Unmarshal(event, &invoke); err != nil {
+	var e events.LambdaFunctionURLRequest
+	if err := json.Unmarshal(event, &e); err != nil {
 		log.Printf("Failed to unmarshal event: %v", err)
 		return err
 	}
 
-	fmt.Println(invoke.Body)
+	fmt.Println(e.Body)
 
-	// log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID).Msg("invoke debug")
+	var invoke Invoke
+	if err := json.Unmarshal([]byte(e.Body), &invoke); err != nil {
+		log.Printf("Failed to unmarshal event: %v", err)
+		return err
+	}
 
-	// if invoke.InvokeType == "manual" {
+	log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID).Msg("invoke debug")
 
-	// 	log.Info().Msg("manual trigger invoked")
-	// }
+	if invoke.InvokeType == "manual" {
+
+		log.Info().Msg("manual trigger invoked")
+	} else {
+		log.Info().Msg("interval trigger invoked")
+	}
 
 	// 	if invoke.AwsAccountID != "" {
 	// 		awsHandler(invoke.ClientID, invoke.AwsAccountID, invoke.ClientEmail)
