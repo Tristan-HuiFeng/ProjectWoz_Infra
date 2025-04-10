@@ -153,7 +153,7 @@ resource "aws_lambda_alias" "discovery_alias" {
 
 resource "aws_lambda_function_url" "discovery_manual_invoke" {
   function_name      = aws_lambda_function.discovery.function_name
-  qualifier          = "$LATEST"
+  # qualifier          = "$LATEST"
   authorization_type = "AWS_IAM"
 
   cors {
