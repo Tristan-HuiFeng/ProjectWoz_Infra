@@ -151,6 +151,21 @@ resource "aws_lambda_alias" "discovery_alias" {
   function_version = aws_lambda_function.discovery.version
 }
 
+resource "aws_lambda_function_url" "discovery_manual_invoke" {
+  function_name      = aws_lambda_function.discovery.function_name
+  qualifier          = "$LATEST"
+  authorization_type = "AWS_IAM"
+
+  cors {
+    allow_credentials = true
+    allow_origins     = ["*"]
+    allow_methods     = ["*"]
+    allow_headers     = ["date", "keep-alive"]
+    expose_headers    = ["keep-alive", "date"]
+    max_age           = 86400
+  }
+}
+
 # resource "aws_lambda_event_source_mapping" "discovery" {
 #   batch_size          = 1
 #   event_source_arn    = var.discovery_sqs_queue_arn
