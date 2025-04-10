@@ -220,7 +220,7 @@ func handler(ctx context.Context, event json.RawMessage) error {
 		return err
 	}
 
-	fmt.Println(invoke)
+	fmt.Println(invoke.Body)
 
 	// log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID).Msg("invoke debug")
 
