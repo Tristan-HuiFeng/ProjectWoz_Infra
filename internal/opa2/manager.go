@@ -94,7 +94,7 @@ func RunScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, rego
 	return nil
 }
 
-func RunGCPScan(configRepo awscloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, clientID string, accountID string, clientEmail string, provider string, resources []gcpcloud.ResourceDiscovery) error {
+func RunGCPScan(configRepo gcpcloud.ConfigRepository, scanRepo ScanRepository, regoRepo RegoRepository, discoveryID bson.ObjectID, clientID string, accountID string, clientEmail string, provider string, resources []gcpcloud.ResourceDiscovery) error {
 	log.Info().Str("Discovery ID", discoveryID.Hex()).Msg("Starting misconfig scan")
 
 	for _, resource := range resources {

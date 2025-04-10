@@ -133,7 +133,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		if job.Provider == "AWS" {
 			err = opa2.RunScan(awsConfigRepo, scanRepo, regoRepo, id, job.ClientID, job.AccountID, job.ClientEmail, "AWS", awsResources)
 		} else if job.Provider == "GCP" {
-			err = opa2.RunGCPScan(awsConfigRepo, scanRepo, regoRepo, id, job.ClientID, job.AccountID, job.ClientEmail, "GCP", gcpResources)
+			err = opa2.RunGCPScan(gcpConfigRepo, scanRepo, regoRepo, id, job.ClientID, job.AccountID, job.ClientEmail, "GCP", gcpResources)
 		} else {
 			log.Warn().Str("messageID", message.MessageId).Str("jobID", job.JobID).Msg("Provider not supported")
 			return errors.New("provider not supported")
