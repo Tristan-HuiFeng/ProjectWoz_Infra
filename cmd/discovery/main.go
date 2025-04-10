@@ -222,12 +222,12 @@ func handler(ctx context.Context, event json.RawMessage) error {
 
 	fmt.Println(invoke)
 
-	log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID).Msg("invoke debug")
+	// log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID).Msg("invoke debug")
 
-	if invoke.InvokeType == "manual" {
+	// if invoke.InvokeType == "manual" {
 
-		log.Info().Msg("manual trigger invoked")
-	}
+	// 	log.Info().Msg("manual trigger invoked")
+	// }
 
 	// 	if invoke.AwsAccountID != "" {
 	// 		awsHandler(invoke.ClientID, invoke.AwsAccountID, invoke.ClientEmail)
