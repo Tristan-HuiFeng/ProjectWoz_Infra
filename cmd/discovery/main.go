@@ -220,8 +220,6 @@ func handler(ctx context.Context, event json.RawMessage) error {
 		return err
 	}
 
-	fmt.Println(e.Body)
-
 	var invoke Invoke
 	if err := json.Unmarshal([]byte(e.Body), &invoke); err != nil {
 		log.Printf("Failed to unmarshal event: %v", err)
@@ -233,37 +231,34 @@ func handler(ctx context.Context, event json.RawMessage) error {
 	if invoke.InvokeType == "manual" {
 
 		log.Info().Msg("manual trigger invoked")
+
+		if invoke.AwsAccountID != "" {
+			awsHandler(invoke.ClientID, invoke.AwsAccountID, invoke.ClientEmail)
+		}
+
+		if invoke.GcpProjectID != "" {
+			gcpHandler(invoke.ClientID, invoke.GcpProjectID, invoke.ClientEmail)
+		}
+
+		log.Info().Msg("manual discovery process completed")
+
 	} else {
+
 		log.Info().Msg("interval trigger invoked")
+		awsClientID := "1"
+		awsAccountID := "050752608470"
+		clientEmail := "user.ad.proj@gmail.com"
+		gcpClientID := "1"
+		clientGCPProjectID := "the-other-450607-a4"
+		// clientGCPProjectID := "cs464-454011"
+
+		awsHandler(awsClientID, awsAccountID, clientEmail)
+
+		gcpHandler(gcpClientID, clientGCPProjectID, clientEmail)
+
+		log.Info().Msg("interval discovery process completed")
+
 	}
-
-	// 	if invoke.AwsAccountID != "" {
-	// 		awsHandler(invoke.ClientID, invoke.AwsAccountID, invoke.ClientEmail)
-	// 	}
-
-	// 	if invoke.GcpProjectID != "" {
-	// 		gcpHandler(invoke.ClientID, invoke.GcpProjectID, invoke.ClientEmail)
-	// 	}
-
-	// 	log.Info().Msg("manual discovery process completed")
-
-	// } else {
-
-	// 	log.Info().Msg("interval trigger invoked")
-	// 	awsClientID := "1"
-	// 	awsAccountID := "050752608470"
-	// 	clientEmail := "user.ad.proj@gmail.com"
-	// 	gcpClientID := "1"
-	// 	clientGCPProjectID := "the-other-450607-a4"
-	// 	// clientGCPProjectID := "cs464-454011"
-
-	// 	awsHandler(awsClientID, awsAccountID, clientEmail)
-
-	// 	gcpHandler(gcpClientID, clientGCPProjectID, clientEmail)
-
-	// 	log.Info().Msg("interval discovery process completed")
-
-	// }
 
 	return nil
 
