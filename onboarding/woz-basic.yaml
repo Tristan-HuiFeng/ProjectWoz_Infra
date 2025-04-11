@@ -10,10 +10,10 @@ Resources:
           - Effect: Allow
             Principal:
               AWS:
-                - Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+                - Fn::Sub: arn:aws:iam::216989130230:root
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: S3ReadOnlyAccess
+        - PolicyName: WoZS3ReadOnlyAccess
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -33,7 +33,7 @@ Resources:
                   - s3:ListBucket
                   - s3:ListAllMyBuckets
                 Resource: "*"
-        - PolicyName: EC2ReadOnlyAccess
+        - PolicyName: WozEC2ReadOnlyAccess
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -47,7 +47,7 @@ Resources:
                   - "cloudwatch:Describe*"
                   - "autoscaling:Describe*"
                 Resource: "*"
-        - PolicyName: EC2ReadOnlyAccess
+        - PolicyName: WozRDSReadOnlyAccess
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -69,7 +69,3 @@ Resources:
                   - logs:GetLogEvents
                   - devops-guru:GetResourceCollection
                 Resource: "*"
-              - Effect: Allow
-                Action:
-                  - devops-guru:SearchInsights
-                  - devops-guru:ListAnomaliesForInsight

@@ -10,7 +10,7 @@ Resources:
           - Effect: Allow
             Principal:
               AWS:
-              - Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+              - Fn::Sub: arn:aws:iam::216989130230:root
             Action: sts:AssumeRole
       Policies:
         - PolicyName: ReadOnlyAccess
