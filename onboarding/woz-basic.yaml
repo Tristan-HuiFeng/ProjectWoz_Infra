@@ -39,12 +39,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  "ec2:Describe*",
-                  "elasticloadbalancing:Describe*",
-                  "cloudwatch:Describe*",
-                  "cloudwatch:Get*",
-                  "cloudwatch:List*",
-                  "autoscaling:Describe*"
+                  - "ec2:Describe*"
+                  - "ec2:GetSecurityGroupsForVpc"
+                  - "elasticloadbalancing:Describe*"
+                  - "cloudwatch:ListMetrics"
+                  - "cloudwatch:GetMetricStatistics"
+                  - "cloudwatch:Describe*"
+                  - "autoscaling:Describe*"
                 Resource: '*'
         - PolicyName: EC2ReadOnlyAccess
           PolicyDocument:
@@ -52,17 +53,23 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - s3:DescribeJob
-                  - s3:GetBucketPolicy
-                  - s3:GetBucketPolicyStatus
-                  - s3:GetBucketVersioning
-                  - s3:DescribeMultiRegionAccessPointOperation
-                  - s3:GetAccessPointPolicy
-                  - s3:GetBucketCORS
-                  - s3:GetBucketMetadataTableConfiguration
-                  - s3:GetEncryptionConfiguration
-                  - s3:GetMultiRegionAccessPointPolicy
-                  - s3:GetMultiRegionAccessPointPolicyStatus
-                  - s3:ListBucket
-                  - s3:ListAllMyBuckets
+                - rds:Describe*
+                - rds:ListTagsForResource
+                - ec2:DescribeAccountAttributes
+                - ec2:DescribeAvailabilityZones
+                - ec2:DescribeInternetGateways
+                - ec2:DescribeSecurityGroups
+                - ec2:DescribeSubnets
+                - ec2:DescribeVpcAttribute
+                - ec2:DescribeVpcs
+                - cloudwatch:GetMetricStatistics
+                - cloudwatch:ListMetrics
+                - cloudwatch:GetMetricData
+                - logs:DescribeLogStreams
+                - logs:GetLogEvents
+                - devops-guru:GetResourceCollection
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - devops-guru:SearchInsights
+                  - devops-guru:ListAnomaliesForInsight
