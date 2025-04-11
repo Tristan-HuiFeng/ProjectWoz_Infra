@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  CrossAccountRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: WozCrossAccountRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+              - Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3ReadOnlyAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:DescribeJob
+                  - s3:GetBucketPolicy
+                  - s3:GetBucketPolicyStatus
+                  - s3:GetBucketVersioning
+                  - s3:DescribeMultiRegionAccessPointOperation
+                  - s3:GetAccessPointPolicy
+                  - s3:GetBucketCORS
+                  - s3:GetBucketMetadataTableConfiguration
+                  - s3:GetEncryptionConfiguration
+                  - s3:GetMultiRegionAccessPointPolicy
+                  - s3:GetMultiRegionAccessPointPolicyStatus
+                  - s3:ListBucket
+                  - s3:ListAllMyBuckets
+                Resource: '*'
+        - PolicyName: EC2ReadOnlyAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  "ec2:Describe*",
+                  "elasticloadbalancing:Describe*",
+                  "cloudwatch:Describe*",
+                  "cloudwatch:Get*",
+                  "cloudwatch:List*",
+                  "autoscaling:Describe*"
+                Resource: '*'
+        - PolicyName: EC2ReadOnlyAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:DescribeJob
+                  - s3:GetBucketPolicy
+                  - s3:GetBucketPolicyStatus
+                  - s3:GetBucketVersioning
+                  - s3:DescribeMultiRegionAccessPointOperation
+                  - s3:GetAccessPointPolicy
+                  - s3:GetBucketCORS
+                  - s3:GetBucketMetadataTableConfiguration
+                  - s3:GetEncryptionConfiguration
+                  - s3:GetMultiRegionAccessPointPolicy
+                  - s3:GetMultiRegionAccessPointPolicyStatus
+                  - s3:ListBucket
+                  - s3:ListAllMyBuckets
+                Resource: '*'
