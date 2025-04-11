@@ -1,21 +1,21 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Resources:
   CrossAccountRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: WozCrossAccountRole
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
               AWS:
-              - Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+                - Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
             Action: sts:AssumeRole
       Policies:
         - PolicyName: S3ReadOnlyAccess
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -32,10 +32,10 @@ Resources:
                   - s3:GetMultiRegionAccessPointPolicyStatus
                   - s3:ListBucket
                   - s3:ListAllMyBuckets
-                Resource: '*'
+                Resource: "*"
         - PolicyName: EC2ReadOnlyAccess
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -46,29 +46,29 @@ Resources:
                   - "cloudwatch:GetMetricStatistics"
                   - "cloudwatch:Describe*"
                   - "autoscaling:Describe*"
-                Resource: '*'
+                Resource: "*"
         - PolicyName: EC2ReadOnlyAccess
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                - rds:Describe*
-                - rds:ListTagsForResource
-                - ec2:DescribeAccountAttributes
-                - ec2:DescribeAvailabilityZones
-                - ec2:DescribeInternetGateways
-                - ec2:DescribeSecurityGroups
-                - ec2:DescribeSubnets
-                - ec2:DescribeVpcAttribute
-                - ec2:DescribeVpcs
-                - cloudwatch:GetMetricStatistics
-                - cloudwatch:ListMetrics
-                - cloudwatch:GetMetricData
-                - logs:DescribeLogStreams
-                - logs:GetLogEvents
-                - devops-guru:GetResourceCollection
-                Resource: '*'
+                  - rds:Describe*
+                  - rds:ListTagsForResource
+                  - ec2:DescribeAccountAttributes
+                  - ec2:DescribeAvailabilityZones
+                  - ec2:DescribeInternetGateways
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeVpcAttribute
+                  - ec2:DescribeVpcs
+                  - cloudwatch:GetMetricStatistics
+                  - cloudwatch:ListMetrics
+                  - cloudwatch:GetMetricData
+                  - logs:DescribeLogStreams
+                  - logs:GetLogEvents
+                  - devops-guru:GetResourceCollection
+                Resource: "*"
               - Effect: Allow
                 Action:
                   - devops-guru:SearchInsights
