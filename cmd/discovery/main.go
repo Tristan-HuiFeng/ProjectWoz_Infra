@@ -11,6 +11,7 @@ import (
 	awscloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/aws"
 	gcpcloud "github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/cloud/gcp"
 	"github.com/Tristan-HuiFeng/ProjectWoz_Infra/internal/database"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/rs/zerolog/log"
@@ -200,23 +201,64 @@ func gcpHandler(clientID string, projectID, clientEmail string) error {
 	// return nil
 }
 
-func handler(ctx context.Context) error {
+type Invoke struct {
+	InvokeType   string `json:"invoke_type"`
+	ClientID     string `json:"client_id"`
+	AwsAccountID string `json:"aws_account_id"`
+	GcpProjectID string `json:"gcp_project_id"`
+	ClientEmail  string `json:"client_email"`
+}
+
+func handler(ctx context.Context, event json.RawMessage) error {
 	// Assuming discoveryRepo and AWS Config are provided from somewhere
 
 	log.Info().Msg("running interval discovery")
 
-	// awsClientID := "1"
-	// awsAccountID := "050752608470"
-	clientEmail := "user.ad.proj@gmail.com"
-	gcpClientID := "1"
-	clientGCPProjectID := "the-other-450607-a4"
-	// clientGCPProjectID := "cs464-454011"
+	var e events.LambdaFunctionURLRequest
+	if err := json.Unmarshal(event, &e); err != nil {
+		log.Printf("Failed to unmarshal event: %v", err)
+		return err
+	}
 
-	// awsHandler(awsClientID, awsAccountID, clientEmail)
+	var invoke Invoke
+	if err := json.Unmarshal([]byte(e.Body), &invoke); err != nil {
+		log.Printf("Failed to unmarshal event: %v", err)
+		return err
+	}
 
-	gcpHandler(gcpClientID, clientGCPProjectID, clientEmail)
+	log.Info().Str("invoke type", invoke.InvokeType).Str("aws acc id", invoke.AwsAccountID).Str("gcp proj id", invoke.GcpProjectID).Msg("invoke debug")
 
-	log.Info().Msg("interval discovery process completed")
+	if invoke.InvokeType == "manual" {
+
+		log.Info().Msg("manual trigger invoked")
+
+		if invoke.AwsAccountID != "" {
+			awsHandler(invoke.ClientID, invoke.AwsAccountID, invoke.ClientEmail)
+		}
+
+		if invoke.GcpProjectID != "" {
+			gcpHandler(invoke.ClientID, invoke.GcpProjectID, invoke.ClientEmail)
+		}
+
+		log.Info().Msg("manual discovery process completed")
+
+	} else {
+
+		log.Info().Msg("interval trigger invoked")
+		awsClientID := "1"
+		awsAccountID := "050752608470"
+		clientEmail := "user.ad.proj@gmail.com"
+		gcpClientID := "1"
+		clientGCPProjectID := "the-other-450607-a4"
+		// clientGCPProjectID := "cs464-454011"
+
+		awsHandler(awsClientID, awsAccountID, clientEmail)
+
+		gcpHandler(gcpClientID, clientGCPProjectID, clientEmail)
+
+		log.Info().Msg("interval discovery process completed")
+
+	}
 
 	return nil
 
