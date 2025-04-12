@@ -56,6 +56,7 @@ func (d *S3Service) RetrieveConfig(cfg aws.Config, bucketNames []string) (map[st
 			configs[bucket] = make(map[string]interface{})
 		}
 
+		log.Info().Str("bucket name", bucket).Msg("Retrieving config for bucket")
 		output, err := client.GetBucketPolicy(context.TODO(), &s3.GetBucketPolicyInput{
 			Bucket: aws.String(bucket),
 		})
@@ -80,6 +81,8 @@ func (d *S3Service) RetrieveConfig(cfg aws.Config, bucketNames []string) (map[st
 			log.Error().Err(err).Str("bucket name:", bucket).Msg("Error unmarshalling bucket policy")
 			continue // Skip to the next bucket
 		}
+
+		log.Info().Str("bucket name", bucket).Str("policy", *output.Policy)
 
 		configs[bucket]["bucket_policy"] = unmarshalledPolicy
 
