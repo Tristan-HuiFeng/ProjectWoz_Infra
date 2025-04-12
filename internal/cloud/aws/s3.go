@@ -67,7 +67,7 @@ func (d *S3Service) RetrieveConfig(cfg aws.Config, bucketNames []string) (map[st
 
 			if errors.As(err, &oe) {
 				//log.Printf("failed to call service: %s, operation: %s, error: %v", oe.Service(), oe.Operation(), oe.Unwrap())
-				log.Info().Err(err).Str("bucket name:", bucket)
+				log.Info().Err(err).Str("bucket name:", bucket).Msg("No bucket policy found")
 				configs[bucket]["bucket_policy"] = ""
 			} else {
 				log.Error().Err(err).Str("bucket name:", bucket).Msg("Error Retriving Bucket Policy")
