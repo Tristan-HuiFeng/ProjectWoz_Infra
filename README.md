@@ -5,6 +5,8 @@
 - MongoDB
 - Setting up SSM Parameters in AWS
 - Terraform
+- AWS CLI with profile configured
+- Change the AWS Account ID and SSM parameters name to fit your configuration under iac/app
 
 ## 🛠️ Installation
 ```
